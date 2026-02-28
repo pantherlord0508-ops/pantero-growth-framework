@@ -28,7 +28,7 @@ const SocialProofSection = () => (
             <span className="text-gradient-gold">Already Moving.</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every day, more ambitious people commit to structured growth. Don't get left behind.
+            Real people are joining because they're tired of learning without results. Here's the momentum so far.
           </p>
         </div>
       </AnimatedSection>
@@ -104,8 +104,8 @@ const SocialProofSection = () => (
 
       <AnimatedSection delay={0.4}>
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          <span className="text-foreground font-medium">Only early members</span> get founding access & shape the platform.{" "}
-          <span className="text-primary font-semibold">Spots are filling fast.</span>
+          <span className="text-foreground font-medium">Early members</span> help shape what Pantero becomes.{" "}
+          <span className="text-primary font-semibold">You could be one of them.</span>
         </p>
       </AnimatedSection>
     </div>

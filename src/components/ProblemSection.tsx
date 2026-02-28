@@ -4,18 +4,18 @@ import AnimatedSection from "./AnimatedSection";
 const problems = [
   {
     icon: BookOpen,
-    title: "Content Overload",
-    description: "Endless tutorials with no clear path forward. Consumption without direction.",
+    title: "Too Much, Too Scattered",
+    description: "You've got a hundred tabs open and no idea what to focus on. Sound familiar?",
   },
   {
     icon: Shuffle,
-    title: "No Structure",
-    description: "Random learning with no progression system. No way to measure real growth.",
+    title: "No Clear Path",
+    description: "You learn random things but never feel like you're actually getting better. There's no system.",
   },
   {
     icon: TrendingDown,
-    title: "No Link to Outcomes",
-    description: "Learning disconnected from execution. No bridge to earning or building proof.",
+    title: "Learning ≠ Earning",
+    description: "Certificates pile up but nobody's hiring you for them. The gap between learning and doing is real.",
   },
 ];
 
@@ -26,10 +26,10 @@ const ProblemSection = () => (
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
             Most platforms teach.{" "}
-            <span className="text-gradient-gold">Few build ability.</span>
+            <span className="text-gradient-gold">Few actually help you grow.</span>
           </h2>
           <p className="mt-4 text-muted-foreground leading-relaxed">
-            The current approach to online learning is broken. Content is everywhere, but structured growth is rare.
+            Let's be honest — the way most people learn online isn't working. Here's why.
           </p>
         </div>
       </AnimatedSection>

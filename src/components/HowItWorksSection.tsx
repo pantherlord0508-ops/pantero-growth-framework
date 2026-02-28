@@ -3,18 +3,18 @@ import AnimatedSection from "./AnimatedSection";
 const steps = [
   {
     number: "01",
-    title: "Learn with Structure",
-    description: "Follow guided paths built for depth. No guessing what comes next.",
+    title: "Pick a Path",
+    description: "Choose what you want to learn. We'll give you a clear, structured roadmap — no guessing required.",
   },
   {
     number: "02",
-    title: "Apply Through Action",
-    description: "Practice with real projects and challenges that test what you've learned.",
+    title: "Get Your Hands Dirty",
+    description: "Theory is just the start. You'll work on real projects that test what you know and push you further.",
   },
   {
     number: "03",
-    title: "Build Proof & Unlock Opportunities",
-    description: "Showcase your work, earn credentials, and connect to real opportunities.",
+    title: "Show What You've Built",
+    description: "Your work becomes your proof. Showcase it, earn recognition, and unlock real opportunities.",
   },
 ];
 
@@ -26,6 +26,9 @@ const HowItWorksSection = () => (
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
             How It Works
           </h2>
+          <p className="mt-4 text-muted-foreground">
+            Three steps. No fluff. Just a clear way to go from curious to capable.
+          </p>
         </div>
       </AnimatedSection>
 

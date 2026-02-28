@@ -101,3 +101,24 @@
     background: linear-gradient(90deg, transparent, hsl(42 60% 54% / 0.4), transparent);
   }
 }
+
+/* Gold scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(220 12% 7%);
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(42 40% 32%);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(42 60% 44%);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(42 40% 32%) hsl(220 12% 7%);
+}
