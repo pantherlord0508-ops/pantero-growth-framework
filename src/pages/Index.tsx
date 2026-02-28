@@ -6,9 +6,11 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import SocialProofSection from "@/components/SocialProofSection";
 import RoadmapSection from "@/components/RoadmapSection";
 import EarlyAccessSection from "@/components/EarlyAccessSection";
+import RecommendationSection from "@/components/RecommendationSection";
 import ReferralSection from "@/components/ReferralSection";
 import FinalCTASection from "@/components/FinalCTASection";
 import Footer from "@/components/Footer";
+import FAQBot from "@/components/FAQBot";
 
 const Index = () => (
   <div className="min-h-screen bg-background">
@@ -20,9 +22,11 @@ const Index = () => (
     <SocialProofSection />
     <RoadmapSection />
     <EarlyAccessSection />
+    <RecommendationSection />
     <ReferralSection />
     <FinalCTASection />
     <Footer />
+    <FAQBot />
   </div>
 );
 
