@@ -36,7 +36,7 @@ const HeroSection = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          Skill Development Framework
+          Your Growth Nexus
         </motion.p>
         <motion.h1
           className="font-display text-5xl font-bold leading-[1.1] tracking-tight text-foreground md:text-7xl"
@@ -44,7 +44,7 @@ const HeroSection = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.7 }}
         >
-          Turn Skill Into{" "}
+          Where Learning Becomes{" "}
           <span className="text-gradient-gold">Real Ability.</span>
         </motion.h1>
         <motion.p
@@ -53,7 +53,7 @@ const HeroSection = () => (
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.6 }}
         >
-          A structured system that helps you move from learning to execution to real outcomes.
+          We connect what you learn to what you build — so your growth actually leads somewhere.
         </motion.p>
 
         {/* Live counter */}

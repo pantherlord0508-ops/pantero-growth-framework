@@ -5,27 +5,27 @@ import { motion, AnimatePresence } from "framer-motion";
 const faqs = [
   {
     q: "What is Pantero?",
-    a: "Pantero is a structured skill-development platform that helps you move from learning to execution to real outcomes — not just collecting certificates.",
+    a: "Pantero is a platform — a nexus, really — where you learn skills, build real projects, and actually get somewhere with it. No more certificate hoarding.",
   },
   {
     q: "When does beta launch?",
-    a: "Beta launches in August 2026. Early waitlist members get first access and help shape the platform.",
+    a: "We're aiming for August 2026. If you're on the waitlist early, you'll be among the first people in — and you'll help us shape it.",
   },
   {
     q: "Is it free?",
-    a: "Early access will be free for founding members. Premium features will be introduced later with fair pricing.",
+    a: "For founding members? Completely free. We'll introduce paid features later, but early supporters will always get special treatment.",
   },
   {
     q: "How do referrals work?",
-    a: "After joining the waitlist, you get a unique referral link. Each friend who signs up through your link moves you higher in the queue.",
+    a: "Once you join, you'll get a unique link from Waitlister. Share it with friends — every person who signs up through your link moves you up in line.",
   },
   {
     q: "What skills are covered?",
-    a: "We're starting with tech, design, and business skills — with community-driven paths expanding over time.",
+    a: "We're kicking off with tech, design, and business — but this grows with the community. If enough people want it, we'll build paths for it.",
   },
   {
     q: "How is this different?",
-    a: "Unlike courses that end at theory, Pantero gives you structured paths with real projects, proof of work, and access to opportunities.",
+    a: "Most platforms stop at theory. We take you all the way — structured paths, real projects, proof of what you've done, and doors that actually open.",
   },
 ];
 

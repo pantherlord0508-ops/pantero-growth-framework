@@ -4,23 +4,23 @@ import AnimatedSection from "./AnimatedSection";
 const features = [
   {
     icon: Layers,
-    title: "Structured Learning Paths",
-    description: "Follow curated progressions designed for depth, not surface-level browsing.",
+    title: "Paths That Make Sense",
+    description: "No more jumping between random tutorials. We give you a clear road from beginner to capable.",
   },
   {
     icon: BarChart3,
-    title: "Skill Progression Tracking",
-    description: "Measure where you are and where you're heading with clear milestones.",
+    title: "See Your Progress",
+    description: "Know exactly where you stand and what's next. Real milestones, not vague promises.",
   },
   {
     icon: Zap,
-    title: "Learn → Do → Showcase → Earn",
-    description: "A complete loop from knowledge acquisition to real-world proof and opportunity.",
+    title: "Learn → Build → Show → Grow",
+    description: "It's a full loop — pick up a skill, apply it to real projects, then let your work speak for itself.",
   },
   {
     icon: Target,
-    title: "Built for Serious Growth",
-    description: "No passive scrolling. Every action moves you closer to measurable outcomes.",
+    title: "Made for People Who Mean It",
+    description: "This isn't a content library. Every step is designed to push you closer to something real.",
   },
 ];
 
@@ -33,9 +33,12 @@ const SolutionSection = () => (
             What Is Pantero?
           </p>
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-            A Framework for{" "}
-            <span className="text-gradient-gold">Measurable Growth</span>
+            A Platform for{" "}
+            <span className="text-gradient-gold">Meaningful Growth</span>
           </h2>
+          <p className="mt-4 text-muted-foreground">
+            Think of it as your growth nexus — where skills, projects, and opportunities meet in one place.
+          </p>
         </div>
       </AnimatedSection>
 

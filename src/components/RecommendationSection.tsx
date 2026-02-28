@@ -11,7 +11,7 @@ const RecommendationSection = () => {
     e.preventDefault();
     if (!form.email || !form.recommendation) return;
     setSubmitted(true);
-    toast.success("Recommendation received! A confirmation email has been sent to " + form.email);
+    toast.success("Got it! We've sent a confirmation to " + form.email + ". Thanks for sharing 🙌");
   };
 
   return (
@@ -25,7 +25,7 @@ const RecommendationSection = () => {
               <span className="text-gradient-gold">Recommendation.</span>
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Help us build what matters. Tell us what features or skills you'd love to see on Pantero.
+              We're building this for you — so tell us what you actually want. Features, skills, ideas — all welcome.
             </p>
           </div>
         </AnimatedSection>
@@ -37,10 +37,10 @@ const RecommendationSection = () => {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/20">
                   <CheckCircle className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground">Thank You!</h3>
+                <h3 className="font-display text-xl font-semibold text-foreground">We Hear You 🎉</h3>
                 <p className="text-sm text-muted-foreground">
-                  Your recommendation has been submitted. We've sent a confirmation to{" "}
-                  <span className="font-medium text-foreground">{form.email}</span>.
+                  Your idea is in our hands now. We've sent a confirmation to{" "}
+                  <span className="font-medium text-foreground">{form.email}</span> — thanks for helping us build something great.
                 </p>
               </div>
             ) : (

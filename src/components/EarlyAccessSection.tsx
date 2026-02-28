@@ -4,10 +4,10 @@ import AnimatedSection from "./AnimatedSection";
 const WAITLIST_URL = "https://waitlister.me/p/pantero-app";
 
 const perks = [
-  { icon: Crown, text: "Priority access to the platform" },
-  { icon: Mail, text: "Beta invitations before public launch" },
-  { icon: Users, text: "Founding member recognition" },
-  { icon: MessageSquare, text: "Direct input into platform evolution" },
+  { icon: Crown, text: "You get in before everyone else" },
+  { icon: Mail, text: "First to try new features as they ship" },
+  { icon: Users, text: "Your name lives on as a founding member" },
+  { icon: MessageSquare, text: "Tell us what to build — we'll actually listen" },
 ];
 
 const EarlyAccessSection = () => (
@@ -20,7 +20,7 @@ const EarlyAccessSection = () => (
             <span className="text-gradient-gold">Early Members.</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Join a focused group shaping how skill development should work.
+            We're not building this alone. Early members have a real voice in what Pantero becomes.
           </p>
         </div>
       </AnimatedSection>

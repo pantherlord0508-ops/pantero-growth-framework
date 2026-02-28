@@ -18,7 +18,7 @@ const FinalCTASection = () => (
             <span className="text-gradient-gold">Growth?</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Stop consuming. Start building real ability.
+            You've scrolled this far — that says something. Let's make it count.
           </p>
           <motion.a
             href={WAITLIST_URL}

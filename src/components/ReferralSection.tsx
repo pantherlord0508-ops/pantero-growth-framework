@@ -8,19 +8,19 @@ const steps = [
     icon: UserPlus,
     step: "1",
     title: "Join the Waitlist",
-    description: "Sign up at waitlister.me/p/pantero-app to reserve your spot.",
+    description: "Head to our waitlist page and drop your email. Takes 10 seconds.",
   },
   {
     icon: Copy,
     step: "2",
     title: "Copy Your Referral Link",
-    description: "After joining, go to your Waitlister dashboard and copy your unique referral link.",
+    description: "Once you're in, grab your personal referral link from your Waitlister dashboard.",
   },
   {
     icon: Users,
     step: "3",
     title: "Share With Friends",
-    description: "Send your link to friends. Each signup moves you up the queue for early access.",
+    description: "Send it to friends who care about growth. Every signup bumps you up the queue.",
   },
 ];
 
@@ -36,7 +36,7 @@ const ReferralSection = () => (
             Grow With Us.
           </h2>
           <p className="mt-4 text-muted-foreground leading-relaxed">
-            Invite others who are serious about building real skills. Move up the queue together.
+            Know someone who'd love this? Bring them along — you'll both get in faster.
           </p>
         </div>
       </AnimatedSection>
