@@ -1,19 +1,63 @@
 
 
-## Plan: Fix OG Image Preview for Link Sharing
+## Plan: Enhance Landing Page with Extended Roadmap, Line Chart, Recommendation Panel, Referral Guide, and FAQ Minibot
 
-**Problem:** The `og:image` and `twitter:image` meta tags use relative paths (`/og-image.jpg`), which social platforms cannot resolve. They need absolute URLs.
+### 1. Expand Roadmap to 6 Milestones
+**File:** `src/components/RoadmapSection.tsx`
 
-**Solution:** Update `index.html` to use the full absolute URL for the preview image based on the deployed domain.
+Add 3 more milestones to the existing 3:
+- Now: Early Access Waitlist (active)
+- March 2026: Community Building
+- June 2026: Alpha Testing
+- August 2026: Beta Launch
+- October 2026: Creator Tools
+- November 2026: Full Launch
 
-### Changes
+### 2. Replace Bar Chart with Line Chart
+**File:** `src/components/SocialProofSection.tsx`
 
-**File:** `index.html`
+Replace the custom bar chart with a Recharts `LineChart` using the existing `recharts` dependency. Show weekly signup growth as a smooth line with gold gradient fill underneath. Keep the stats cards above.
 
-1. Update `og:image` from `/og-image.jpg` to `https://id-preview--65cabe3f-1b95-4711-b6c9-7551b1e5e042.lovable.app/og-image.jpg` (and later the published domain once published)
-2. Update `twitter:image` similarly
-3. Add `og:url` meta tag for proper link previewing
-4. Ensure the `og-image.jpg` file in `public/` is the Pantero favicon/icon (already copied previously)
+### 3. Add Recommendation Panel
+**File:** Create `src/components/RecommendationSection.tsx`
 
-This ensures platforms like WhatsApp, Twitter, LinkedIn, Discord etc. can fetch and display the Pantero icon as the link preview image.
+A form where users can submit a recommendation/suggestion for the platform:
+- Name field (optional)
+- Email field (required)
+- Recommendation textarea (required)
+- Submit button with success toast confirmation
+- On submit: show a success state with a simulated "confirmation email sent" message via `sonner` toast
+
+Since there's no backend connected, the form will show a polished success state and confirmation toast. No actual email sending (would require Lovable Cloud).
+
+### 4. Update Referral Section with Step-by-Step Guide
+**File:** `src/components/ReferralSection.tsx`
+
+Replace the current simple copy-link section with a 3-step visual guide:
+1. Join the waitlist at waitlister.me
+2. Copy your unique referral link from your Waitlister dashboard
+3. Share with friends to move up the queue
+
+Keep the copy-link for the main waitlist URL.
+
+### 5. Add FAQ Minibot
+**File:** Create `src/components/FAQBot.tsx`
+
+A floating chat-style widget (bottom-right corner) that:
+- Shows a small gold chat icon button
+- Opens a mini panel with pre-set FAQ questions as clickable chips
+- Displays answers inline when a question is tapped
+- Questions cover: "What is Pantero?", "When does beta launch?", "Is it free?", "How do referrals work?", "What skills are covered?", "How is this different?"
+- Pure client-side, no AI API needed
+
+### 6. Integrate All New Components
+**File:** `src/pages/Index.tsx`
+
+Add `RecommendationSection` after `EarlyAccessSection`, and add `FAQBot` as a floating component. Update imports.
+
+### Technical Notes
+- Line chart uses existing `recharts` dependency
+- Toast notifications use existing `sonner`
+- FAQ bot is a self-contained component with hardcoded Q&A pairs
+- No backend/API needed for any of these changes
 
