@@ -18,15 +18,7 @@ const LiveCounter = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Simulate waitlist ticks
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWaitlisters((w) => w + 1);
-      setWaitFlash(true);
-      setTimeout(() => setWaitFlash(false), 600);
-    }, Math.random() * 18000 + 14000);
-    return () => clearInterval(interval);
-  }, []);
+  // Waitlist counter is static — only increments on explicit click
 
   const handleWaitlistClick = () => {
     setViews((v) => v + 1);
