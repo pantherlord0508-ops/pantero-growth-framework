@@ -1,9 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 const STORAGE_KEY = "pantero_intro_seen";
+export const ENABLE_PANTERO_INTRO = true;
 
 export function useIntroLoader() {
   const [showIntro, setShowIntro] = useState(() => {
+    if (!ENABLE_PANTERO_INTRO) return false;
     try {
       return localStorage.getItem(STORAGE_KEY) !== "true";
     } catch {
@@ -17,6 +19,13 @@ export function useIntroLoader() {
       localStorage.setItem(STORAGE_KEY, "true");
     } catch {}
   }, []);
+
+  // Auto-skip safety net (12s max)
+  useEffect(() => {
+    if (!showIntro) return;
+    const t = setTimeout(dismiss, 12000);
+    return () => clearTimeout(t);
+  }, [showIntro, dismiss]);
 
   return { showIntro, dismiss };
 }
