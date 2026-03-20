@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { ParticleField, DiceShell } from "./PanteroScene";
 import CubeGroup from "./PanteroCubes";
@@ -112,7 +111,7 @@ const IntroCanvasContent = ({ phase }: IntroCanvasProps) => {
 
 const IntroCanvas = ({ phase }: IntroCanvasProps) => {
   return (
-    <div className="absolute inset-0">
+    <div style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
       <Canvas
         camera={{ position: [0, 0, 0.5], fov: 60, near: 0.1, far: 100 }}
         dpr={[1, 1.5]}
