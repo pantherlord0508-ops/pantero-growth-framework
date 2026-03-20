@@ -4,6 +4,7 @@ import { Text } from "@react-three/drei";
 import * as THREE from "three";
 
 const GOLD = "#C6A85B";
+const LETTERS = ["P", "A", "N", "T", "E", "R", "O"];
 
 const HALF = 0.425; // half of 0.85
 const EDGE_THICKNESS = 0.035;
