@@ -23,10 +23,10 @@ export function useIntroLoader() {
     } catch {}
   }, []);
 
-  // Auto-skip safety net (12s max)
+  // Auto-skip safety net (70s max for 60s animation)
   useEffect(() => {
     if (!showIntro) return;
-    const t = setTimeout(dismiss, 12000);
+    const t = setTimeout(dismiss, 70000);
     return () => clearTimeout(t);
   }, [showIntro, dismiss]);
 
