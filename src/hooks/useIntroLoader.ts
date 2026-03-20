@@ -6,11 +6,14 @@ export const ENABLE_PANTERO_INTRO = true;
 export function useIntroLoader() {
   const [showIntro, setShowIntro] = useState(() => {
     if (!ENABLE_PANTERO_INTRO) return false;
-    try {
-      return localStorage.getItem(STORAGE_KEY) !== "true";
-    } catch {
-      return false;
-    }
+    // Always show intro for testing/demo purposes
+    // To restore persistence, uncomment the localStorage check below:
+    // try {
+    //   return localStorage.getItem(STORAGE_KEY) !== "true";
+    // } catch {
+    //   return false;
+    // }
+    return true;
   });
 
   const dismiss = useCallback(() => {
