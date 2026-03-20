@@ -81,33 +81,67 @@ const SingleCube = ({
 
   return (
     <group ref={ref}>
-      {/* Dark core */}
-      <mesh>
+      {/* 6-face cube with individual face materials for real 3D depth */}
+      <mesh castShadow receiveShadow>
         <boxGeometry args={[0.85, 0.85, 0.85]} />
-        <meshStandardMaterial
-          color="#0a0a0a"
-          metalness={0.85}
-          roughness={0.2}
-        />
+        {/* Each face gets its own material: front, back, top, bottom, right, left */}
+        {[...Array(6)].map((_, faceIdx) => (
+          <meshPhysicalMaterial
+            key={faceIdx}
+            attach={`material-${faceIdx}`}
+            color="#0a0a0a"
+            metalness={0.92}
+            roughness={0.08}
+            reflectivity={0.9}
+            clearcoat={1.0}
+            clearcoatRoughness={0.05}
+            envMapIntensity={1.5}
+          />
+        ))}
       </mesh>
-      {/* Gold edges */}
-      <lineSegments>
-        <edgesGeometry args={[new THREE.BoxGeometry(0.87, 0.87, 0.87)]} />
-        <lineBasicMaterial color={GOLD} linewidth={2} />
-      </lineSegments>
-      {/* Gold wireframe glow */}
-      <mesh>
-        <boxGeometry args={[0.88, 0.88, 0.88]} />
-        <meshStandardMaterial
+
+      {/* Beveled gold edge frame — 12 edges via thin boxes */}
+      {CUBE_EDGES.map((edge, eIdx) => (
+        <mesh key={`edge-${eIdx}`} position={edge.pos} rotation={edge.rot}>
+          <boxGeometry args={edge.size} />
+          <meshPhysicalMaterial
+            color={GOLD}
+            metalness={0.95}
+            roughness={0.15}
+            emissive={GOLD}
+            emissiveIntensity={0.35}
+            clearcoat={0.8}
+            clearcoatRoughness={0.1}
+          />
+        </mesh>
+      ))}
+
+      {/* Corner accent spheres for premium feel */}
+      {CUBE_CORNERS.map((corner, cIdx) => (
+        <mesh key={`corner-${cIdx}`} position={corner}>
+          <sphereGeometry args={[0.04, 8, 8]} />
+          <meshPhysicalMaterial
+            color={GOLD}
+            metalness={0.95}
+            roughness={0.1}
+            emissive={GOLD}
+            emissiveIntensity={0.5}
+          />
+        </mesh>
+      ))}
+
+      {/* Subtle inner glow plane on front face */}
+      <mesh position={[0, 0, 0.426]}>
+        <planeGeometry args={[0.75, 0.75]} />
+        <meshBasicMaterial
           color={GOLD}
-          wireframe
           transparent
-          opacity={0.15}
-          emissive={GOLD}
-          emissiveIntensity={0.4}
+          opacity={0.04}
+          side={THREE.FrontSide}
         />
       </mesh>
-      {/* Letter */}
+
+      {/* Letter on front face */}
       {showLetter && (
         <Text
           position={[0, showFeature ? 0.15 : 0, 0.44]}
@@ -115,7 +149,8 @@ const SingleCube = ({
           color={GOLD}
           anchorX="center"
           anchorY="middle"
-          font="/fonts/Inter-Bold.ttf"
+          outlineWidth={0.01}
+          outlineColor="#000000"
         >
           {letter}
         </Text>
@@ -129,6 +164,8 @@ const SingleCube = ({
           anchorX="center"
           anchorY="middle"
           maxWidth={0.7}
+          outlineWidth={0.005}
+          outlineColor="#000000"
         >
           {feature.label}
         </Text>
