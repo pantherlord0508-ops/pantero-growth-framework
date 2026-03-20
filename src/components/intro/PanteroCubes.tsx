@@ -4,7 +4,35 @@ import { Text } from "@react-three/drei";
 import * as THREE from "three";
 
 const GOLD = "#C6A85B";
-const LETTERS = ["P", "A", "N", "T", "E", "R", "O"];
+
+const HALF = 0.425; // half of 0.85
+const EDGE_THICKNESS = 0.035;
+const EDGE_LEN = 0.85;
+
+// 12 edges of a cube: 4 along each axis
+const CUBE_EDGES: { pos: [number, number, number]; rot: [number, number, number]; size: [number, number, number] }[] = [
+  // 4 edges along X axis (top/bottom, front/back)
+  { pos: [0, HALF, HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [0, -HALF, HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [0, HALF, -HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [0, -HALF, -HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  // 4 edges along Y axis
+  { pos: [HALF, 0, HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [-HALF, 0, HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [HALF, 0, -HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [-HALF, 0, -HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  // 4 edges along Z axis
+  { pos: [HALF, HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+  { pos: [-HALF, HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+  { pos: [HALF, -HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+  { pos: [-HALF, -HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+];
+
+// 8 corners
+const CUBE_CORNERS: [number, number, number][] = [
+  [HALF, HALF, HALF], [-HALF, HALF, HALF], [HALF, -HALF, HALF], [-HALF, -HALF, HALF],
+  [HALF, HALF, -HALF], [-HALF, HALF, -HALF], [HALF, -HALF, -HALF], [-HALF, -HALF, -HALF],
+];
 const FEATURES = [
   { label: "AI Study" },
   { label: "Mining" },
