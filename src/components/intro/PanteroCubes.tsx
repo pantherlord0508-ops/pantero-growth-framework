@@ -5,6 +5,35 @@ import * as THREE from "three";
 
 const GOLD = "#C6A85B";
 const LETTERS = ["P", "A", "N", "T", "E", "R", "O"];
+
+const HALF = 0.425; // half of 0.85
+const EDGE_THICKNESS = 0.035;
+const EDGE_LEN = 0.85;
+
+// 12 edges of a cube: 4 along each axis
+const CUBE_EDGES: { pos: [number, number, number]; rot: [number, number, number]; size: [number, number, number] }[] = [
+  // 4 edges along X axis (top/bottom, front/back)
+  { pos: [0, HALF, HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [0, -HALF, HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [0, HALF, -HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [0, -HALF, -HALF], rot: [0, 0, 0], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  // 4 edges along Y axis
+  { pos: [HALF, 0, HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [-HALF, 0, HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [HALF, 0, -HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  { pos: [-HALF, 0, -HALF], rot: [0, 0, Math.PI / 2], size: [EDGE_LEN, EDGE_THICKNESS, EDGE_THICKNESS] },
+  // 4 edges along Z axis
+  { pos: [HALF, HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+  { pos: [-HALF, HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+  { pos: [HALF, -HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+  { pos: [-HALF, -HALF, 0], rot: [Math.PI / 2, 0, 0], size: [EDGE_THICKNESS, EDGE_THICKNESS, EDGE_LEN] },
+];
+
+// 8 corners
+const CUBE_CORNERS: [number, number, number][] = [
+  [HALF, HALF, HALF], [-HALF, HALF, HALF], [HALF, -HALF, HALF], [-HALF, -HALF, HALF],
+  [HALF, HALF, -HALF], [-HALF, HALF, -HALF], [HALF, -HALF, -HALF], [-HALF, -HALF, -HALF],
+];
 const FEATURES = [
   { label: "AI Study" },
   { label: "Mining" },
@@ -81,33 +110,67 @@ const SingleCube = ({
 
   return (
     <group ref={ref}>
-      {/* Dark core */}
-      <mesh>
+      {/* 6-face cube with individual face materials for real 3D depth */}
+      <mesh castShadow receiveShadow>
         <boxGeometry args={[0.85, 0.85, 0.85]} />
-        <meshStandardMaterial
-          color="#0a0a0a"
-          metalness={0.85}
-          roughness={0.2}
-        />
+        {/* Each face gets its own material: front, back, top, bottom, right, left */}
+        {[...Array(6)].map((_, faceIdx) => (
+          <meshPhysicalMaterial
+            key={faceIdx}
+            attach={`material-${faceIdx}`}
+            color="#0a0a0a"
+            metalness={0.92}
+            roughness={0.08}
+            reflectivity={0.9}
+            clearcoat={1.0}
+            clearcoatRoughness={0.05}
+            envMapIntensity={1.5}
+          />
+        ))}
       </mesh>
-      {/* Gold edges */}
-      <lineSegments>
-        <edgesGeometry args={[new THREE.BoxGeometry(0.87, 0.87, 0.87)]} />
-        <lineBasicMaterial color={GOLD} linewidth={2} />
-      </lineSegments>
-      {/* Gold wireframe glow */}
-      <mesh>
-        <boxGeometry args={[0.88, 0.88, 0.88]} />
-        <meshStandardMaterial
+
+      {/* Beveled gold edge frame — 12 edges via thin boxes */}
+      {CUBE_EDGES.map((edge, eIdx) => (
+        <mesh key={`edge-${eIdx}`} position={edge.pos} rotation={edge.rot}>
+          <boxGeometry args={edge.size} />
+          <meshPhysicalMaterial
+            color={GOLD}
+            metalness={0.95}
+            roughness={0.15}
+            emissive={GOLD}
+            emissiveIntensity={0.35}
+            clearcoat={0.8}
+            clearcoatRoughness={0.1}
+          />
+        </mesh>
+      ))}
+
+      {/* Corner accent spheres for premium feel */}
+      {CUBE_CORNERS.map((corner, cIdx) => (
+        <mesh key={`corner-${cIdx}`} position={corner}>
+          <sphereGeometry args={[0.04, 8, 8]} />
+          <meshPhysicalMaterial
+            color={GOLD}
+            metalness={0.95}
+            roughness={0.1}
+            emissive={GOLD}
+            emissiveIntensity={0.5}
+          />
+        </mesh>
+      ))}
+
+      {/* Subtle inner glow plane on front face */}
+      <mesh position={[0, 0, 0.426]}>
+        <planeGeometry args={[0.75, 0.75]} />
+        <meshBasicMaterial
           color={GOLD}
-          wireframe
           transparent
-          opacity={0.15}
-          emissive={GOLD}
-          emissiveIntensity={0.4}
+          opacity={0.04}
+          side={THREE.FrontSide}
         />
       </mesh>
-      {/* Letter */}
+
+      {/* Letter on front face */}
       {showLetter && (
         <Text
           position={[0, showFeature ? 0.15 : 0, 0.44]}
@@ -115,7 +178,8 @@ const SingleCube = ({
           color={GOLD}
           anchorX="center"
           anchorY="middle"
-          font="/fonts/Inter-Bold.ttf"
+          outlineWidth={0.01}
+          outlineColor="#000000"
         >
           {letter}
         </Text>
@@ -129,6 +193,8 @@ const SingleCube = ({
           anchorX="center"
           anchorY="middle"
           maxWidth={0.7}
+          outlineWidth={0.005}
+          outlineColor="#000000"
         >
           {feature.label}
         </Text>
