@@ -40,6 +40,7 @@ interface Props {
 
 const PanteroIntroLoader = ({ onComplete }: Props) => {
   const [phase, setPhase] = useState<Phase>("countdown");
+  console.log("[PanteroIntro] Rendering, phase:", "countdown");
   const [countdownNum, setCountdownNum] = useState(1);
   const [webGLFailed, setWebGLFailed] = useState(false);
   const [phaseStart, setPhaseStart] = useState(Date.now());
