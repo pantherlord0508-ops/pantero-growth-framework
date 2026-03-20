@@ -15,13 +15,13 @@ type Phase =
   | "exit";
 
 const PHASE_DURATIONS: Record<Phase, number> = {
-  countdown: 2000,
-  dice: 1500,
-  emerge: 1500,
-  brand: 1200,
-  features: 2500,
-  dissolve: 1200,
-  exit: 800,
+  countdown: 3000,
+  dice: 3000,
+  emerge: 44000,   // Main phase: 7 cubes × ~6s each = 42s + buffer
+  brand: 4000,
+  features: 3000,
+  dissolve: 2000,
+  exit: 1000,
 };
 
 const PHASE_ORDER: Phase[] = [
