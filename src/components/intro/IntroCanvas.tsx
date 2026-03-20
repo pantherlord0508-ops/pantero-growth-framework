@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { ParticleField, DiceShell } from "./PanteroScene";
 import CubeGroup from "./PanteroCubes";
