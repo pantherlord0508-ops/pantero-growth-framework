@@ -1,63 +1,64 @@
 
 
-## Plan: Enhance Landing Page with Extended Roadmap, Line Chart, Recommendation Panel, Referral Guide, and FAQ Minibot
+## Plan: Solid 3D Cubes Rolling on Static Table with Side Detail Panel
 
-### 1. Expand Roadmap to 6 Milestones
-**File:** `src/components/RoadmapSection.tsx`
+### Problems to Fix
 
-Add 3 more milestones to the existing 3:
-- Now: Early Access Waitlist (active)
-- March 2026: Community Building
-- June 2026: Alpha Testing
-- August 2026: Beta Launch
-- October 2026: Creator Tools
-- November 2026: Full Launch
+1. **Camera orbits the whole scene** — user wants a fixed platform/table, only cubes move
+2. **Cubes are wireframe/edge-only** — user wants solid, real-looking 3D cubes
+3. **No detail panel** — when a cube lands, a half-page info section should appear on the left describing the feature
 
-### 2. Replace Bar Chart with Line Chart
-**File:** `src/components/SocialProofSection.tsx`
+### Changes
 
-Replace the custom bar chart with a Recharts `LineChart` using the existing `recharts` dependency. Show weekly signup growth as a smooth line with gold gradient fill underneath. Keep the stats cards above.
+#### 1. `src/components/intro/PanteroCubes.tsx` — Solid Real Cubes
 
-### 3. Add Recommendation Panel
-**File:** Create `src/components/RecommendationSection.tsx`
+- Remove the wireframe edge bars (`CUBE_EDGES`) and corner spheres (`CUBE_CORNERS`)
+- Replace with a single solid `boxGeometry` using `meshPhysicalMaterial` with:
+  - Dark glossy faces (metalness 0.85, roughness 0.15, clearcoat 1.0)
+  - Gold-colored edges rendered via `<lineSegments>` with `edgesGeometry` for subtle gold outlines
+- Keep the rolling physics, bounce, and spin-to-reveal logic
+- Each cube rolls from top-right of scene, tumbles across table, settles, then rotates front face to camera
+- Export a callback/state so the parent knows which cube is currently "revealed" (index + elapsed since reveal)
 
-A form where users can submit a recommendation/suggestion for the platform:
-- Name field (optional)
-- Email field (required)
-- Recommendation textarea (required)
-- Submit button with success toast confirmation
-- On submit: show a success state with a simulated "confirmation email sent" message via `sonner` toast
+#### 2. `src/components/intro/IntroCanvas.tsx` — Fixed Camera, No Orbit
 
-Since there's no backend connected, the form will show a polished success state and confirmation toast. No actual email sending (would require Lovable Cloud).
+- **Remove the orbiting camera rig** — set camera to a fixed elevated angle (e.g. `[0, 5, 8]` looking at `[0, 0, 0]`)
+- Keep `TableSurface` static — no rotation
+- Keep particles and lighting as-is
 
-### 4. Update Referral Section with Step-by-Step Guide
-**File:** `src/components/ReferralSection.tsx`
+#### 3. `src/components/intro/PanteroIntroLoader.tsx` — Add Left-Side Detail Panel
 
-Replace the current simple copy-link section with a 3-step visual guide:
-1. Join the waitlist at waitlister.me
-2. Copy your unique referral link from your Waitlister dashboard
-3. Share with friends to move up the queue
+- Track which cube is currently revealed (pass state up from CubeGroup or derive from elapsed time)
+- When a cube lands and faces camera, show a **left-side panel** (roughly 40-50% width) with:
+  - Feature icon (Lucide icon)
+  - Feature name (large gold text)
+  - Feature description (~2-3 sentences)
+  - Animated entrance (slide in from left, fade)
+  - Animated exit when next cube starts rolling
+- Features data: AI Study Assistant, Token Mining, Marketplace, Social Profiles, Affiliate Store, Custom Themes, Quote Generator — each with a description
+- The 3D canvas occupies the right half of the screen
 
-Keep the copy-link for the main waitlist URL.
+#### 4. Layout Structure
 
-### 5. Add FAQ Minibot
-**File:** Create `src/components/FAQBot.tsx`
+```text
+┌──────────────────────────────────────────────┐
+│  [Skip]                                       │
+│                                               │
+│  ┌─────────────┐  ┌────────────────────────┐  │
+│  │  Feature     │  │                        │  │
+│  │  Detail      │  │   3D Canvas            │  │
+│  │  Panel       │  │   (cubes rolling       │  │
+│  │  (animated)  │  │    on fixed table)     │  │
+│  │             │  │                        │  │
+│  └─────────────┘  └────────────────────────┘  │
+│                                               │
+└──────────────────────────────────────────────┘
+```
 
-A floating chat-style widget (bottom-right corner) that:
-- Shows a small gold chat icon button
-- Opens a mini panel with pre-set FAQ questions as clickable chips
-- Displays answers inline when a question is tapped
-- Questions cover: "What is Pantero?", "When does beta launch?", "Is it free?", "How do referrals work?", "What skills are covered?", "How is this different?"
-- Pure client-side, no AI API needed
+### Technical Details
 
-### 6. Integrate All New Components
-**File:** `src/pages/Index.tsx`
-
-Add `RecommendationSection` after `EarlyAccessSection`, and add `FAQBot` as a floating component. Update imports.
-
-### Technical Notes
-- Line chart uses existing `recharts` dependency
-- Toast notifications use existing `sonner`
-- FAQ bot is a self-contained component with hardcoded Q&A pairs
-- No backend/API needed for any of these changes
+- Camera: static `PerspectiveCamera` at `[3, 4, 7]`, `lookAt(0, 0.3, 0)` — no useFrame orbit
+- Cube material: `meshPhysicalMaterial` with `color="#1a1a1a"`, `metalness=0.85`, `roughness=0.15`, `clearcoat=1.0` + gold `edgesGeometry` lines
+- Detail panel: Framer Motion `AnimatePresence` with slide-in/out, absolute positioned left half
+- Reveal tracking: derive from `elapsed` time — cube `i` reveals at `startTime + rollDuration + 0.8s`, next cube starts at `startTime + 6s`
 
