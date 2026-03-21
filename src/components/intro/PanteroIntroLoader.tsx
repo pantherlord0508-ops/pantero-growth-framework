@@ -163,22 +163,24 @@ const PanteroIntroLoader = ({ onComplete }: Props) => {
         )}
       </AnimatePresence>
 
-      {/* Left-side feature detail panel */}
+      {/* Feature detail panel — bottom on mobile, left side on desktop */}
       <AnimatePresence mode="wait">
         {activeFeature && phase === "emerge" && (
           <motion.div
             key={revealedCube}
-            className="absolute left-0 top-0 bottom-0 z-40 flex items-center"
-            style={{ width: "42%" }}
-            initial={{ opacity: 0, x: -60 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
+            className="absolute z-40 left-0 right-0 bottom-0 flex items-end md:items-center md:right-auto md:top-0 md:bottom-0"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)" }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <div className="px-8 md:px-12 lg:px-16 py-8 w-full">
+            <div className="px-5 pb-6 pt-10 md:px-12 md:py-8 w-full md:max-w-[42%]"
+              style={{ background: "transparent" }}
+            >
               {/* Gold accent line */}
               <motion.div
-                className="w-12 h-0.5 mb-6"
+                className="w-10 md:w-12 h-0.5 mb-3 md:mb-6"
                 style={{ background: GOLD }}
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
@@ -187,17 +189,17 @@ const PanteroIntroLoader = ({ onComplete }: Props) => {
 
               {/* Icon */}
               <motion.div
-                className="mb-4"
+                className="mb-2 md:mb-4"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
               >
-                <activeFeature.icon size={36} color={GOLD} strokeWidth={1.5} />
+                <activeFeature.icon className="w-6 h-6 md:w-9 md:h-9" color={GOLD} strokeWidth={1.5} />
               </motion.div>
 
               {/* Feature name */}
               <motion.h2
-                className="text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 tracking-wide"
+                className="text-lg md:text-3xl lg:text-4xl font-display font-bold mb-1.5 md:mb-4 tracking-wide"
                 style={{ color: GOLD, textShadow: `0 0 20px ${GOLD}30` }}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -208,7 +210,7 @@ const PanteroIntroLoader = ({ onComplete }: Props) => {
 
               {/* Description */}
               <motion.p
-                className="text-sm md:text-base leading-relaxed"
+                className="text-xs md:text-base leading-relaxed line-clamp-3 md:line-clamp-none"
                 style={{ color: "rgba(255,255,255,0.7)" }}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -219,7 +221,7 @@ const PanteroIntroLoader = ({ onComplete }: Props) => {
 
               {/* Cube counter */}
               <motion.div
-                className="mt-8 flex gap-2"
+                className="mt-4 md:mt-8 flex gap-2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.45 }}
@@ -227,7 +229,7 @@ const PanteroIntroLoader = ({ onComplete }: Props) => {
                 {FEATURE_DATA.map((_, i) => (
                   <div
                     key={i}
-                    className="w-2 h-2 rounded-full transition-all duration-300"
+                    className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-300"
                     style={{
                       background: i <= (revealedCube ?? -1) ? GOLD : "rgba(255,255,255,0.15)",
                       boxShadow: i === revealedCube ? `0 0 8px ${GOLD}` : "none",
