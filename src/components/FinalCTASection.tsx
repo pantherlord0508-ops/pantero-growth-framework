@@ -14,11 +14,11 @@ const FinalCTASection = () => (
       <AnimatedSection>
         <div className="mx-auto max-w-xl text-center">
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-            Serious About{" "}
-            <span className="text-gradient-gold">Growth?</span>
+            Ready to Own{" "}
+            <span className="text-gradient-gold">Your Future?</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            You've scrolled this far — that says something. Let's make it count.
+            Your identity. Your language. Your opportunity. It starts here.
           </p>
           <motion.a
             href={WAITLIST_URL}

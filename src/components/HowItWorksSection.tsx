@@ -3,48 +3,48 @@ import AnimatedSection from "./AnimatedSection";
 const steps = [
   {
     number: "01",
-    title: "Pick a Path",
-    description: "Choose what you want to learn. We'll give you a clear, structured roadmap — no guessing required.",
+    title: "Create Your Digital Identity",
+    description: "Set up your decentralized identity — a secure, portable profile that you control. No central authority owns your data.",
   },
   {
     number: "02",
-    title: "Learn the Fundamentals",
-    description: "Start with the core concepts. Bite-sized lessons designed to build understanding from the ground up.",
+    title: "Verify Your Credentials",
+    description: "Add your education, work history, and skills. Pantero's verification system turns them into trusted, shareable credentials.",
   },
   {
     number: "03",
-    title: "Get Your Hands Dirty",
-    description: "Theory is just the start. You'll work on real exercises that test what you know and push you further.",
+    title: "Meet Your AI Companion",
+    description: "Your personal AI assistant activates — speaking your native language. It learns your goals and guides your next steps, even offline.",
   },
   {
     number: "04",
-    title: "Track Your Progress",
-    description: "See exactly where you stand with real-time metrics, streaks, and milestone tracking across every path.",
+    title: "Explore Skill Paths",
+    description: "Browse structured learning paths tailored to in-demand fields. Your AI companion recommends what's most relevant to your goals.",
   },
   {
     number: "05",
-    title: "Connect With Peers",
-    description: "Join a community of driven learners. Collaborate, compete, and grow together through shared goals.",
+    title: "Learn and Build",
+    description: "Work through courses and hands-on projects. Every completed module earns you verifiable credentials stored on your identity.",
   },
   {
     number: "06",
-    title: "Get Mentored",
-    description: "Access guidance from experienced practitioners who've walked the path you're on right now.",
+    title: "Get Assessed",
+    description: "Take skill assessments designed by practitioners. Your results become blockchain-backed proof that employers and mentors can trust.",
   },
   {
     number: "07",
-    title: "Build Real Projects",
-    description: "Apply your skills to meaningful, portfolio-worthy projects that demonstrate real-world competence.",
+    title: "Discover Opportunities",
+    description: "The job marketplace matches your verified skills to real openings. Employers see your credentials — not just a résumé.",
   },
   {
     number: "08",
-    title: "Earn Credentials",
-    description: "Complete challenges and assessments to earn verifiable credentials that prove your abilities.",
+    title: "Join the Community",
+    description: "Connect with peers, mentors, and collaborators across the continent. Participate in governance and help shape what Pantero becomes.",
   },
   {
     number: "09",
-    title: "Unlock Opportunities",
-    description: "Your work becomes your proof. Showcase it, earn recognition, and unlock real opportunities.",
+    title: "Grow Without Limits",
+    description: "As you learn, build, and earn — your digital identity grows with you. New skills, new credentials, new doors. The cycle never stops.",
   },
 ];
 
@@ -57,7 +57,7 @@ const HowItWorksSection = () => (
             How It Works
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Nine steps. No fluff. A clear path from curious to capable.
+            Nine steps. From identity to opportunity — a clear path forward.
           </p>
         </div>
       </AnimatedSection>

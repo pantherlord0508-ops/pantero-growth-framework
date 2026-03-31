@@ -21,11 +21,11 @@ const RecommendationSection = () => {
           <div className="mx-auto max-w-2xl text-center">
             <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-primary">Your Voice Matters</p>
             <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-              Share Your{" "}
-              <span className="text-gradient-gold">Recommendation.</span>
+              Help Us Build{" "}
+              <span className="text-gradient-gold">What You Need.</span>
             </h2>
             <p className="mt-4 text-muted-foreground">
-              We're building this for you — so tell us what you actually want. Features, skills, ideas — all welcome.
+              Tell us what matters most to you — languages, features, industries, skills. We're listening.
             </p>
           </div>
         </AnimatedSection>
@@ -40,7 +40,7 @@ const RecommendationSection = () => {
                 <h3 className="font-display text-xl font-semibold text-foreground">We Hear You 🎉</h3>
                 <p className="text-sm text-muted-foreground">
                   Your idea is in our hands now. We've sent a confirmation to{" "}
-                  <span className="font-medium text-foreground">{form.email}</span> — thanks for helping us build something great.
+                  <span className="font-medium text-foreground">{form.email}</span> — thanks for helping us build something that matters.
                 </p>
               </div>
             ) : (
@@ -72,14 +72,14 @@ const RecommendationSection = () => {
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                    Recommendation <span className="text-primary">*</span>
+                    What should we build? <span className="text-primary">*</span>
                   </label>
                   <textarea
                     required
                     rows={4}
                     value={form.recommendation}
                     onChange={(e) => setForm({ ...form, recommendation: e.target.value })}
-                    placeholder="What features or skills would you love to see?"
+                    placeholder="What languages, features, or opportunities matter most to you?"
                     className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                   />
                 </div>

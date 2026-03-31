@@ -28,7 +28,7 @@ const SocialProofSection = () => (
             <span className="text-gradient-gold">Already Moving.</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Real people are joining because they're tired of learning without results. Here's the momentum so far.
+            Across the continent, people are signing up because they believe in a platform that puts identity and opportunity in their hands.
           </p>
         </div>
       </AnimatedSection>

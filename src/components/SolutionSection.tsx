@@ -1,26 +1,26 @@
-import { Layers, BarChart3, Zap, Target } from "lucide-react";
+import { Fingerprint, BrainCircuit, Briefcase, GraduationCap } from "lucide-react";
 import AnimatedSection from "./AnimatedSection";
 
 const features = [
   {
-    icon: Layers,
-    title: "Paths That Make Sense",
-    description: "No more jumping between random tutorials. We give you a clear road from beginner to capable.",
+    icon: Fingerprint,
+    title: "Your Identity, Your Control",
+    description: "A decentralized digital identity that belongs to you — not a corporation. Verify your credentials, prove your skills, and own your data.",
   },
   {
-    icon: BarChart3,
-    title: "See Your Progress",
-    description: "Know exactly where you stand and what's next. Real milestones, not vague promises.",
+    icon: BrainCircuit,
+    title: "An AI That Gets You",
+    description: "An offline-capable AI companion that speaks Yoruba, Swahili, Hausa, and more. It guides you through skills, jobs, and opportunities — in your language.",
   },
   {
-    icon: Zap,
-    title: "Learn → Build → Show → Grow",
-    description: "It's a full loop — pick up a skill, apply it to real projects, then let your work speak for itself.",
+    icon: Briefcase,
+    title: "Jobs That Find You",
+    description: "A marketplace that matches your verified skills and credentials to real opportunities. No more guessing — your work speaks for itself.",
   },
   {
-    icon: Target,
-    title: "Made for People Who Mean It",
-    description: "This isn't a content library. Every step is designed to push you closer to something real.",
+    icon: GraduationCap,
+    title: "Skills That Count",
+    description: "Structured learning paths with verifiable credentials. Complete assessments, earn blockchain-backed certificates, and let employers trust what you know.",
   },
 ];
 
@@ -33,11 +33,11 @@ const SolutionSection = () => (
             What Is Pantero?
           </p>
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-            A Platform for{" "}
-            <span className="text-gradient-gold">Meaningful Growth</span>
+            A Nexus for{" "}
+            <span className="text-gradient-gold">Africa's Digital Future</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Think of it as your growth nexus — where skills, projects, and opportunities meet in one place.
+            Pantero connects identity, intelligence, and opportunity into one place — built by Africans, for Africa.
           </p>
         </div>
       </AnimatedSection>
