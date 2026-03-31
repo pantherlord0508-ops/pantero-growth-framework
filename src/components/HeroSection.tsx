@@ -36,7 +36,7 @@ const HeroSection = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          Your Growth Nexus
+          Your Digital Identity. Your Future.
         </motion.p>
         <motion.h1
           className="font-display text-5xl font-bold leading-[1.1] tracking-tight text-foreground md:text-7xl"
@@ -44,8 +44,8 @@ const HeroSection = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.7 }}
         >
-          Where Learning Becomes{" "}
-          <span className="text-gradient-gold">Real Ability.</span>
+          Own Your Identity.{" "}
+          <span className="text-gradient-gold">Shape Your Path.</span>
         </motion.h1>
         <motion.p
           className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
@@ -53,7 +53,7 @@ const HeroSection = () => (
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.6 }}
         >
-          We connect what you learn to what you build — so your growth actually leads somewhere.
+          Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter.
         </motion.p>
 
         {/* Live counter */}

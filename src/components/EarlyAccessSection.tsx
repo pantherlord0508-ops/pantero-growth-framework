@@ -4,10 +4,10 @@ import AnimatedSection from "./AnimatedSection";
 const WAITLIST_URL = "https://waitlister.me/p/pantero-app";
 
 const perks = [
-  { icon: Crown, text: "You get in before everyone else" },
-  { icon: Mail, text: "First to try new features as they ship" },
-  { icon: Users, text: "Your name lives on as a founding member" },
-  { icon: MessageSquare, text: "Tell us what to build — we'll actually listen" },
+  { icon: Crown, text: "First access to the identity system and AI companion" },
+  { icon: Mail, text: "Direct updates as new features and languages ship" },
+  { icon: Users, text: "Your name recognized as a founding member" },
+  { icon: MessageSquare, text: "A real voice in what we build and where we go" },
 ];
 
 const EarlyAccessSection = () => (
@@ -20,7 +20,7 @@ const EarlyAccessSection = () => (
             <span className="text-gradient-gold">Early Members.</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            We're not building this alone. Early members have a real voice in what Pantero becomes.
+            Pantero isn't being built in isolation. Early members have a real voice in shaping Africa's digital future.
           </p>
         </div>
       </AnimatedSection>

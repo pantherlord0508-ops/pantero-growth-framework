@@ -1,21 +1,21 @@
-import { BookOpen, Shuffle, TrendingDown } from "lucide-react";
+import { ShieldOff, Globe, BrainCircuit } from "lucide-react";
 import AnimatedSection from "./AnimatedSection";
 
 const problems = [
   {
-    icon: BookOpen,
-    title: "Too Much, Too Scattered",
-    description: "You've got a hundred tabs open and no idea what to focus on. Sound familiar?",
+    icon: ShieldOff,
+    title: "No Digital Identity",
+    description: "Millions across Africa have no way to prove who they are online. Without a verified digital identity, doors stay closed.",
   },
   {
-    icon: Shuffle,
-    title: "No Clear Path",
-    description: "You learn random things but never feel like you're actually getting better. There's no system.",
+    icon: Globe,
+    title: "Opportunities Exist — Access Doesn't",
+    description: "Jobs, skills training, and resources are out there, but there's no single place connecting people to what they need — especially in their own language.",
   },
   {
-    icon: TrendingDown,
-    title: "Learning ≠ Earning",
-    description: "Certificates pile up but nobody's hiring you for them. The gap between learning and doing is real.",
+    icon: BrainCircuit,
+    title: "AI That Doesn't Speak Your Language",
+    description: "Most digital tools are built for English-first audiences. If you think in Yoruba, Swahili, or Hausa, you're left behind.",
   },
 ];
 
@@ -25,11 +25,11 @@ const ProblemSection = () => (
       <AnimatedSection>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-            Most platforms teach.{" "}
-            <span className="text-gradient-gold">Few actually help you grow.</span>
+            The gap is real.{" "}
+            <span className="text-gradient-gold">And it's holding people back.</span>
           </h2>
           <p className="mt-4 text-muted-foreground leading-relaxed">
-            Let's be honest — the way most people learn online isn't working. Here's why.
+            Across the continent, talent is everywhere — but the systems to unlock it barely exist.
           </p>
         </div>
       </AnimatedSection>

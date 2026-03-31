@@ -5,27 +5,31 @@ import { motion, AnimatePresence } from "framer-motion";
 const faqs = [
   {
     q: "What is Pantero?",
-    a: "Pantero is a platform — a nexus, really — where you learn skills, build real projects, and actually get somewhere with it. No more certificate hoarding.",
+    a: "Pantero is a Pan-African platform that gives you a secure digital identity, an AI companion that speaks your language, and access to jobs and skills that actually lead somewhere. It's your nexus for growth.",
   },
   {
-    q: "When does beta launch?",
-    a: "We're aiming for August 2026. If you're on the waitlist early, you'll be among the first people in — and you'll help us shape it.",
+    q: "What is a decentralized identity?",
+    a: "It's a digital identity that you own and control — not a company or government. You decide what to share, with whom, and your credentials are verifiable without a middleman.",
+  },
+  {
+    q: "What languages does the AI support?",
+    a: "We're launching with English, Yoruba, Swahili, and Hausa. We're expanding to 10+ African languages including Igbo, Zulu, Amharic, and more — with voice support coming soon.",
+  },
+  {
+    q: "Does it work offline?",
+    a: "Yes. The AI companion and core features are designed to work offline. We know connectivity is a challenge across the continent, so Pantero is built for low-bandwidth and offline-first use.",
+  },
+  {
+    q: "When does it launch?",
+    a: "The foundation phase begins Q3 2026 with the core identity system and AI companion. If you're on the waitlist, you'll be among the first to experience it.",
   },
   {
     q: "Is it free?",
-    a: "For founding members? Completely free. We'll introduce paid features later, but early supporters will always get special treatment.",
+    a: "For founding members, absolutely. We'll introduce sustainable features later, but early supporters will always receive priority access and recognition.",
   },
   {
-    q: "How do referrals work?",
-    a: "Once you join, you'll get a unique link from Waitlister. Share it with friends — every person who signs up through your link moves you up in line.",
-  },
-  {
-    q: "What skills are covered?",
-    a: "We're kicking off with tech, design, and business — but this grows with the community. If enough people want it, we'll build paths for it.",
-  },
-  {
-    q: "How is this different?",
-    a: "Most platforms stop at theory. We take you all the way — structured paths, real projects, proof of what you've done, and doors that actually open.",
+    q: "How is this different from other platforms?",
+    a: "Most platforms are built for Western audiences. Pantero is built for Africa — with African languages, offline capability, decentralized identity, and a job marketplace that trusts verified credentials over résumés.",
   },
 ];
 

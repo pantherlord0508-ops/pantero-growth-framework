@@ -11,39 +11,39 @@ import calendarImg from "@/assets/x6.png";
 const progressItems = [
   {
     id: "profile",
-    title: "Profile System",
+    title: "Digital Identity Dashboard",
     status: "In Development",
     progress: 72,
     image: profileImg,
     description:
-      "The Profile System is the backbone of every user's journey on Pantero. It provides a fully personalized dashboard where learners can showcase their skills, track their growth over time, and present a curated portfolio of completed projects. Users will have a social-style profile complete with avatars, follower metrics, post counts, and a visible track record of their learning achievements. The profile acts as a living resume — dynamically updated as you complete courses, earn credentials, and contribute to community projects. Employers and mentors can browse profiles to discover talent, making it a critical bridge between skill development and real-world opportunity.",
+      "The Digital Identity Dashboard is the foundation of every user's presence on Pantero. It houses your decentralized identity (DID), displaying verified credentials, skill attestations, and work history in one secure, portable profile. Users can manage their key pairs, control what information is shared and with whom, and present a living portfolio that updates as they earn new credentials. Employers, mentors, and institutions can verify your identity and qualifications instantly — no middleman required. The dashboard acts as your digital passport across the entire Pantero ecosystem, from job applications to community governance participation.",
   },
   {
     id: "courses",
-    title: "Interactive Course Browser",
+    title: "Skill Path Browser",
     status: "Design Phase",
     progress: 45,
     image: coursesImg,
     description:
-      "The Interactive Course Browser reimagines how learners discover and engage with educational content on Pantero. Instead of static lists, courses are presented as immersive, visually rich 3D blocks that respond to user interaction — hover to preview, tap to explore, and scroll to discover more. Each course is categorized by skill path and difficulty level, making it effortless to find exactly what you need. The browser supports filtering by topic, duration, instructor rating, and community engagement. This design philosophy ensures learning feels exciting and gamified, not like scrolling through a spreadsheet. It transforms course discovery into an experience that motivates exploration and commitment.",
+      "The Skill Path Browser reimagines how learners discover structured learning journeys on Pantero. Instead of static course lists, skill paths are presented as immersive, visually rich blocks organized by career field and difficulty level. Each path is curated to lead from foundational knowledge to verifiable competence, with assessments at every stage that generate blockchain-backed credentials. The browser supports filtering by language, region, skill demand, and community ratings. Whether you're pursuing technology, agriculture, trade, or business — the browser makes it effortless to find, commit to, and complete a path that leads to real opportunity.",
   },
   {
     id: "ai-nav",
-    title: "AI Navigator (Operator)",
+    title: "AI Companion (Operator)",
     status: "In Progress",
     progress: 58,
     image: aiNavImg,
     description:
-      "The AI Navigator, codenamed Operator, is Pantero's intelligent assistant designed to guide users through the entire platform experience. It provides real-time, context-aware support — answering questions about course material, suggesting learning paths based on your goals, and helping troubleshoot project challenges. Operator is always online, always available, and learns from your interactions to deliver increasingly personalized recommendations. Whether you need help navigating the platform, understanding a concept, or choosing your next skill to master, Operator is your constant companion. It bridges the gap between self-directed learning and mentor-guided education, ensuring no learner ever feels lost or unsupported on their journey.",
+      "The AI Companion — codenamed Operator — is Pantero's intelligent offline-capable assistant designed to guide users in their native African language. Whether you speak Yoruba, Swahili, Hausa, or any of the languages we're expanding into, Operator understands your context and delivers personalized guidance. It helps you navigate skill paths, prepare for assessments, discover job opportunities, and manage your digital identity. Operator works even without an internet connection, ensuring that users in low-connectivity areas are never left behind. It's not just an assistant — it's a companion that grows with you, learning your goals and adapting its recommendations over time.",
   },
   {
     id: "calendar",
-    title: "Calendar & Event Planner",
+    title: "Opportunity & Event Planner",
     status: "Early Stage",
     progress: 30,
     image: calendarImg,
     description:
-      "The Calendar and Event Planner module brings structure and discipline to the Pantero learning experience. It allows users to schedule study sessions, set milestone deadlines, and receive smart reminders about upcoming events and system maintenance windows. The planner integrates directly with your enrolled courses, automatically suggesting optimal study blocks based on your learning pace and availability. Users can add custom events, sync with external calendars, and track their consistency over time. This tool is designed for learners who understand that skill development requires routine and accountability — transforming good intentions into concrete, time-blocked commitments that drive measurable progress and real results.",
+      "The Opportunity and Event Planner brings structure to your growth journey on Pantero. It integrates with the job marketplace to surface application deadlines, interview schedules, and skill assessment windows. Users can plan study sessions around their enrolled skill paths, set milestone targets, and receive smart reminders in their preferred language. The planner also highlights community events — governance votes, mentor sessions, and regional meetups — ensuring you never miss a chance to engage. Designed for users who understand that consistent action drives results, this tool turns intention into a time-blocked commitment that builds momentum and opens doors.",
   },
 ];
 
@@ -59,7 +59,7 @@ const ProgressShowcase = () => {
               What We're Building
             </h2>
             <p className="mt-4 text-muted-foreground">
-              A sneak peek into the features taking shape — each one designed to transform how you learn and grow.
+              A look at the core systems taking shape — each one designed to give you ownership of your identity and future.
             </p>
           </div>
         </AnimatedSection>
