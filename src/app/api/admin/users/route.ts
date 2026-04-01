@@ -1,45 +1,56 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { adminUsersQuerySchema } from "@/lib/schemas";
+import { apiSuccess, handleZodError, withErrorHandling } from "@/lib/api-response";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger({ route: "api/admin/users" });
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const search = searchParams.get("search") || "";
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const limit = parseInt(searchParams.get("limit") || "20", 10);
-  const sortBy = searchParams.get("sort_by") || "joined_at";
-  const sortOrder = searchParams.get("sort_order") || "desc";
+  return withErrorHandling(async () => {
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
+    const parsed = adminUsersQuerySchema.safeParse(searchParams);
 
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+    if (!parsed.success) {
+      return handleZodError(parsed.error);
+    }
 
-  let query = supabaseAdmin
-    .from("waitlist_users")
-    .select("*", { count: "exact" });
+    const { search, page, limit, sort_by, sort_order } = parsed.data;
 
-  if (search) {
-    query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
-  }
+    log.info({ page, limit, sort_by, sort_order, search: search || undefined }, "Admin users list request");
 
-  query = query
-    .order(sortBy, { ascending: sortOrder === "asc" })
-    .range(from, to);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
-  const { data: users, count, error } = await query;
+    let query = supabaseAdmin
+      .from("waitlist_users")
+      .select("*", { count: "exact" });
 
-  if (error) {
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch users" },
-      { status: 500 }
-    );
-  }
+    if (search) {
+      query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+    }
 
-  const total = count || 0;
-  const totalPages = Math.ceil(total / limit);
+    query = query
+      .order(sort_by, { ascending: sort_order === "asc" })
+      .range(from, to);
 
-  return NextResponse.json({
-    users: users || [],
-    total,
-    page,
-    totalPages,
+    const { data: users, count, error } = await query;
+
+    if (error) {
+      log.error({ err: error }, "Failed to fetch users");
+      throw error;
+    }
+
+    const total = count || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    log.info({ total, page, totalPages }, "Admin users list returned");
+
+    return apiSuccess({
+      users: users || [],
+      total,
+      page,
+      totalPages,
+    });
   });
 }

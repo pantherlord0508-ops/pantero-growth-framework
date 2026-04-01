@@ -1,0 +1,1 @@
+npx lint-staged --max-workers 1

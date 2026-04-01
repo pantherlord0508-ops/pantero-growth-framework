@@ -1,27 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
-
-function getTokenSecret(): string {
-  return process.env.ADMIN_PASSWORD || process.env.SUPABASE_SERVICE_ROLE_KEY || "pantero-fallback-secret";
-}
-
-function isValidAdminToken(token: string): boolean {
-  if (!token || token.length < 32) return false;
-  const parts = token.split(".");
-  if (parts.length !== 2) return false;
-  try {
-    const [data, signature] = parts;
-    const expected = createHmac("sha256", getTokenSecret()).update(data).digest("hex");
-    if (signature.length !== expected.length) return false;
-    let result = 0;
-    for (let i = 0; i < signature.length; i++) {
-      result |= signature.charCodeAt(i) ^ expected.charCodeAt(i);
-    }
-    return result === 0;
-  } catch {
-    return false;
-  }
-}
+import { isValidAdminToken } from "@/lib/services/admin-auth";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -1,3 +1,21 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next
+out
+build
+
+# Build outputs
+dist
+dist-ssr
+
+# Environment variables
+.env
+.env.local
+.env*.local
+.env.production
+
 # Logs
 logs
 *.log
@@ -7,27 +25,40 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.next
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Environment
-.env
-.env.local
-.env*.local
-.kilo
 # OS
+.DS_Store
 Thumbs.db
+
+# Testing
+coverage
+test-results
+playwright-report
+blob-report
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Data exports (contain PII)
+*.csv
+
+# Media files in root
+*.mp4
+*.mov
+*.avi
+
+# Husky (generated)
+.husky/_
+
+# Playwright
+.e2e-results

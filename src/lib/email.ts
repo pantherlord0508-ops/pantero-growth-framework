@@ -1,5 +1,26 @@
+/**
+ * @module email
+ *
+ * Transactional and bulk email utilities for the Pantero waitlist application.
+ *
+ * Built on top of [Resend](https://resend.com), this module provides:
+ *
+ * * Branded HTML email templates (welcome, milestone).
+ * * Helper functions for generating referral & social-share links.
+ * * High-level senders that wrap Resend's API with error handling.
+ *
+ * Required environment variables:
+ *
+ * | Variable | Purpose |
+ * |---|---|
+ * | `RESEND_API_KEY` | API key for the Resend email service |
+ * | `SMTP_FROM` | Custom "from" address (defaults to `onboarding@resend.dev`) |
+ * | `NEXT_PUBLIC_APP_URL` | Base URL used in referral links |
+ * | `NEXT_PUBLIC_WHATSAPP_CHANNEL_URL` | WhatsApp community channel link |
+ */
 import { Resend } from "resend";
 
+/** Pantero brand colours and design tokens used across email templates. */
 const BRAND = {
   bgDark: "#0a0e17",
   gold: "#c9a54e",
@@ -20,10 +41,22 @@ const resend = new Resend(resendApiKey);
 // Default sender - IMPORTANT: Change this once your domain is verified in Resend dashboard
 const DEFAULT_FROM = process.env.SMTP_FROM || "Pantero <onboarding@resend.dev>";
 
+/**
+ * Returns the application base URL from the environment, falling back to
+ * `http://localhost:3000` during local development.
+ *
+ * @returns The public URL of the Pantero application.
+ */
 function getAppUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
+/**
+ * Returns the Pantero WhatsApp community channel URL from the environment,
+ * falling back to the default channel link.
+ *
+ * @returns The WhatsApp channel invite URL.
+ */
 function getWhatsAppUrl(): string {
   return (
     process.env.NEXT_PUBLIC_WHATSAPP_CHANNEL_URL ||
@@ -31,6 +64,13 @@ function getWhatsAppUrl(): string {
   );
 }
 
+/**
+ * Wraps an email body fragment inside the full Pantero-branded HTML document
+ * template, including responsive styles, logo, and footer.
+ *
+ * @param body - Raw HTML string to inject into the main content area.
+ * @returns A complete HTML document string ready to send as an email.
+ */
 function wrapEmailTemplate(body: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -86,6 +126,14 @@ function wrapEmailTemplate(body: string): string {
 </html>`;
 }
 
+/**
+ * Generates a branded gold-gradient CTA button as an HTML table element
+ * (email-client compatible).
+ *
+ * @param href - The URL the button links to.
+ * @param label - The visible button text.
+ * @returns An HTML string representing the styled CTA button.
+ */
 function goldButton(href: string, label: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;">
     <tr>
@@ -96,6 +144,14 @@ function goldButton(href: string, label: string): string {
   </table>`;
 }
 
+/**
+ * Builds a row of social-media share links (Twitter, Facebook, LinkedIn,
+ * WhatsApp) pre-populated with the user's referral URL.
+ *
+ * @param referralCode - The user's unique referral code used to construct the
+ *   share URL.
+ * @returns An HTML table string containing the share links.
+ */
 function socialShareLinks(referralCode: string): string {
   const appUrl = getAppUrl();
   const referralUrl = `${appUrl}/referral/${referralCode}`;
@@ -129,13 +185,39 @@ function socialShareLinks(referralCode: string): string {
   </table>`;
 }
 
+/**
+ * Minimal user data required to render the welcome email.
+ */
 export interface WelcomeUser {
+  /** Full name of the user (first name is extracted for the greeting). */
   full_name: string;
+  /** Email address to send the welcome message to. */
   email: string;
+  /** Unique referral code assigned to the user. */
   referral_code: string;
+  /** Current waitlist position number. */
   position: number;
 }
 
+/**
+ * Generates the full HTML body for the Pantero welcome email.
+ *
+ * The email includes the user's waitlist position, their unique referral link,
+ * a WhatsApp community join button, and social share links.
+ *
+ * @param user - The user data to personalise the email with.
+ * @returns A complete HTML string ready to be passed to the Resend API.
+ *
+ * @example
+ * ```ts
+ * const html = getWelcomeEmailHtml({
+ *   full_name: "Jane Doe",
+ *   email: "jane@example.com",
+ *   referral_code: "JANE-ABC123",
+ *   position: 42,
+ * });
+ * ```
+ */
 export function getWelcomeEmailHtml(user: WelcomeUser): string {
   const appUrl = getAppUrl();
   const referralUrl = `${appUrl}/referral/${user.referral_code}`;
@@ -193,17 +275,43 @@ export function getWelcomeEmailHtml(user: WelcomeUser): string {
   return wrapEmailTemplate(body);
 }
 
+/**
+ * Minimal user data required to render the milestone-reached email.
+ */
 export interface MilestoneUser {
+  /** Full name of the user (first name is extracted for the greeting). */
   full_name: string;
+  /** Email address to send the milestone email to. */
   email: string;
+  /** Unique referral code used to build the share URL. */
   referral_code: string;
 }
 
+/**
+ * Describes a waitlist milestone that has been reached.
+ */
 export interface Milestone {
+  /** Human-readable milestone name (e.g. "1 000 sign-ups"). */
   name: string;
+  /** The referral / sign-up target that was reached. */
   target_count: number;
 }
 
+/**
+ * Generates the full HTML body for a milestone-reached notification email.
+ *
+ * @param user - The recipient user data.
+ * @param milestone - The milestone that was reached.
+ * @returns A complete HTML string ready to be passed to the Resend API.
+ *
+ * @example
+ * ```ts
+ * const html = getMilestoneEmailHtml(
+ *   { full_name: "Jane Doe", email: "jane@example.com", referral_code: "JANE-ABC123" },
+ *   { name: "1K Members", target_count: 1000 }
+ * );
+ * ```
+ */
 export function getMilestoneEmailHtml(
   user: MilestoneUser,
   milestone: Milestone
@@ -246,6 +354,22 @@ export function getMilestoneEmailHtml(
   return wrapEmailTemplate(body);
 }
 
+/**
+ * Sends the Pantero welcome email to a newly registered waitlist user.
+ *
+ * @param user - The user to welcome.
+ * @throws {Error} If the Resend API call fails.
+ *
+ * @example
+ * ```ts
+ * await sendWelcomeEmail({
+ *   full_name: "Jane Doe",
+ *   email: "jane@example.com",
+ *   referral_code: "JANE-ABC123",
+ *   position: 42,
+ * });
+ * ```
+ */
 export async function sendWelcomeEmail(user: WelcomeUser): Promise<void> {
   const html = getWelcomeEmailHtml(user);
 
@@ -264,6 +388,21 @@ export async function sendWelcomeEmail(user: WelcomeUser): Promise<void> {
   }
 }
 
+/**
+ * Sends a milestone-reached notification email to a waitlist user.
+ *
+ * @param user - The recipient user.
+ * @param milestone - The milestone that was achieved.
+ * @throws {Error} If the Resend API call fails.
+ *
+ * @example
+ * ```ts
+ * await sendMilestoneEmail(
+ *   { full_name: "Jane Doe", email: "jane@example.com", referral_code: "JANE-ABC123" },
+ *   { name: "1K Members", target_count: 1000 }
+ * );
+ * ```
+ */
 export async function sendMilestoneEmail(
   user: MilestoneUser,
   milestone: Milestone
@@ -285,6 +424,33 @@ export async function sendMilestoneEmail(
   }
 }
 
+/**
+ * Sends an email to a list of recipients in batches of up to 100 (the Resend
+ * batch-sending limit).
+ *
+ * The provided `htmlBody` is automatically wrapped in the full Pantero-branded
+ * template before sending.
+ *
+ * @param subject - The email subject line.
+ * @param htmlBody - The raw HTML content for the email body (before template wrapping).
+ * @param recipients - Array of recipient objects containing at least an email
+ *   address and display name.
+ * @returns A summary object with counts of successfully sent emails, failures,
+ *   and any error messages.
+ *
+ * @example
+ * ```ts
+ * const result = await sendBulkEmail(
+ *   "Pantero Update",
+ *   "<p>Here is the latest news …</p>",
+ *   [
+ *     { email: "jane@example.com", name: "Jane" },
+ *     { email: "john@example.com", name: "John" },
+ *   ]
+ * );
+ * console.log(`Sent: ${result.sent}, Failed: ${result.failed}`);
+ * ```
+ */
 export async function sendBulkEmail(
   subject: string,
   htmlBody: string,

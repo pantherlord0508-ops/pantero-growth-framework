@@ -1,40 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { bulkEmailSchema } from "@/lib/schemas";
+import { apiSuccess, handleZodError, withErrorHandling } from "@/lib/api-response";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger({ route: "api/admin/email" });
 
 export async function POST(request: NextRequest) {
-  try {
-    const { subject, body, filter } = await request.json();
+  return withErrorHandling(async () => {
+    const body = await request.json();
+    const parsed = bulkEmailSchema.safeParse(body);
 
-    if (!subject || !body) {
-      return NextResponse.json(
-        { success: false, error: "Subject and body are required" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return handleZodError(parsed.error);
     }
 
-    if (typeof subject !== "string" || typeof body !== "string") {
-      return NextResponse.json(
-        { success: false, error: "Invalid input types" },
-        { status: 400 }
-      );
-    }
+    const { subject, body: emailBody, filter } = parsed.data;
 
-    if (subject.length > 200 || body.length > 50000) {
-      return NextResponse.json(
-        { success: false, error: "Input too long" },
-        { status: 400 }
-      );
-    }
+    log.info({ subject, hasFilter: !!filter }, "Bulk email request started");
 
     let query = supabaseAdmin
       .from("waitlist_users")
       .select("email, full_name");
 
-    if (filter && typeof filter === "object") {
-      if (filter.min_referrals !== undefined && typeof filter.min_referrals === "number") {
+    if (filter) {
+      if (filter.min_referrals !== undefined) {
         query = query.gte("referral_count", filter.min_referrals);
       }
-      if (filter.max_referrals !== undefined && typeof filter.max_referrals === "number") {
+      if (filter.max_referrals !== undefined) {
         query = query.lte("referral_count", filter.max_referrals);
       }
     }
@@ -42,31 +35,24 @@ export async function POST(request: NextRequest) {
     const { data: users, error } = await query;
 
     if (error) {
-      return NextResponse.json(
-        { success: false, error: "Failed to fetch recipients" },
-        { status: 500 }
-      );
+      log.error({ err: error }, "Failed to fetch recipients");
+      throw error;
     }
 
     if (!users || users.length === 0) {
-      return NextResponse.json({
-        success: true,
-        sent_count: 0,
-      });
+      log.info("No recipients found for bulk email");
+      return apiSuccess({ success: true, sent_count: 0 });
     }
 
     const { sendBulkEmail } = await import("@/lib/email");
     const recipients = users.map((u) => ({ email: u.email, name: u.full_name }));
-    await sendBulkEmail(subject, body, recipients);
+    await sendBulkEmail(subject, emailBody, recipients);
 
-    return NextResponse.json({
+    log.info({ recipientCount: recipients.length }, "Bulk email sent");
+
+    return apiSuccess({
       success: true,
       sent_count: recipients.length,
     });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Failed to send emails" },
-      { status: 500 }
-    );
-  }
+  });
 }
