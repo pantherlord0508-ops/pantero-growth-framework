@@ -1,49 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac, randomBytes, timingSafeEqual } from "crypto";
+import { adminLoginSchema } from "@/lib/schemas";
+import { generateAdminToken, validateAdminCredentials } from "@/lib/services/admin-auth";
+import { apiError, handleZodError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 
-function getTokenSecret(): string {
-  return process.env.ADMIN_PASSWORD || process.env.SUPABASE_SERVICE_ROLE_KEY || "pantero-fallback-secret";
-}
-
-function generateAdminToken(username: string): string {
-  const data = `${username}:${Date.now()}:${randomBytes(16).toString("hex")}`;
-  const signature = createHmac("sha256", getTokenSecret()).update(data).digest("hex");
-  return `${data}.${signature}`;
-}
-
-function constantTimeCompare(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  try {
-    return timingSafeEqual(bufA, bufB);
-  } catch {
-    return false;
-  }
-}
+const log = logger.child({ module: "api/admin/login" });
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json();
+    const body = await request.json();
+    const parsed = adminLoginSchema.safeParse(body);
 
-    const adminUsername = process.env.ADMIN_USERNAME || "TESORO-DEV";
-    const adminPassword = process.env.ADMIN_PASSWORD || "THINGSIDOFORTREASURE";
-
-    if (!username || typeof username !== "string" || !password || typeof password !== "string") {
-      return NextResponse.json(
-        { success: false, error: "Invalid credentials" },
-        { status: 401 }
-      );
+    if (!parsed.success) {
+      return handleZodError(parsed.error);
     }
 
-    const usernameMatch = constantTimeCompare(username, adminUsername);
-    const passwordMatch = constantTimeCompare(password, adminPassword);
+    const { username, password } = parsed.data;
 
-    if (!usernameMatch || !passwordMatch) {
-      return NextResponse.json(
-        { success: false, error: "Invalid credentials" },
-        { status: 401 }
-      );
+    if (!validateAdminCredentials(username, password)) {
+      log.warn({ username }, "Failed admin login attempt");
+      return apiError("INVALID_CREDENTIALS", "Invalid credentials", 401);
     }
 
     const token = generateAdminToken(username);
@@ -57,11 +33,10 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24,
     });
 
+    log.info({ username }, "Admin login successful");
     return response;
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Service unavailable" },
-      { status: 503 }
-    );
+  } catch (err) {
+    log.error({ err }, "Admin login error");
+    return apiError("SERVICE_UNAVAILABLE", "Service unavailable", 503);
   }
 }

@@ -1,69 +1,75 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { createMilestoneSchema, updateMilestoneSchema } from "@/lib/schemas";
+import { apiSuccess, handleZodError, withErrorHandling } from "@/lib/api-response";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger({ route: "api/admin/milestones" });
 
 export async function GET() {
-  const { data: milestones, error } = await supabaseAdmin
-    .from("milestones")
-    .select("*")
-    .order("target_count", { ascending: true });
+  return withErrorHandling(async () => {
+    log.info("Milestones list request");
 
-  if (error) {
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch milestones" },
-      { status: 500 }
-    );
-  }
+    const { data: milestones, error } = await supabaseAdmin
+      .from("milestones")
+      .select("*")
+      .order("target_count", { ascending: true });
 
-  return NextResponse.json({ milestones: milestones || [] });
+    if (error) {
+      log.error({ err: error }, "Failed to fetch milestones");
+      throw error;
+    }
+
+    log.info({ count: milestones?.length ?? 0 }, "Milestones list returned");
+    return apiSuccess({ milestones: milestones || [] });
+  });
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const { name, description, target_count } = await request.json();
+  return withErrorHandling(async () => {
+    const body = await request.json();
+    const parsed = createMilestoneSchema.safeParse(body);
 
-    if (!name || !target_count) {
-      return NextResponse.json(
-        { success: false, error: "Name and target_count are required" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return handleZodError(parsed.error);
     }
+
+    const { name, description, target_count } = parsed.data;
+
+    log.info({ name, target_count }, "Creating milestone");
 
     const { data: milestone, error } = await supabaseAdmin
       .from("milestones")
       .insert({
         name,
-        description: description || null,
+        description: description ?? null,
         target_count,
       })
       .select()
       .single();
 
     if (error) {
-      return NextResponse.json(
-        { success: false, error: "Failed to create milestone" },
-        { status: 500 }
-      );
+      log.error({ err: error }, "Failed to create milestone");
+      throw error;
     }
 
-    return NextResponse.json({ success: true, milestone });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+    log.info({ milestoneId: milestone.id }, "Milestone created");
+    return apiSuccess({ success: true, milestone }, 201);
+  });
 }
 
 export async function PUT(request: NextRequest) {
-  try {
-    const { id, name, description, target_count } = await request.json();
+  return withErrorHandling(async () => {
+    const body = await request.json();
+    const parsed = updateMilestoneSchema.safeParse(body);
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: "Milestone ID is required" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return handleZodError(parsed.error);
     }
+
+    const { id, name, description, target_count } = parsed.data;
+
+    log.info({ milestoneId: id }, "Updating milestone");
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
@@ -78,17 +84,11 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json(
-        { success: false, error: "Failed to update milestone" },
-        { status: 500 }
-      );
+      log.error({ err: error, milestoneId: id }, "Failed to update milestone");
+      throw error;
     }
 
-    return NextResponse.json({ success: true, milestone });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+    log.info({ milestoneId: id }, "Milestone updated");
+    return apiSuccess({ success: true, milestone });
+  });
 }
