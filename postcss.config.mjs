@@ -1,6 +1,5 @@
-import type { Config } from "postcss";
-
-const config: Config = {
+/** @type {import('postcss').Config} */
+const config = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},

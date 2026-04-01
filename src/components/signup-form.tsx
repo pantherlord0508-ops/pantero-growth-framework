@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -77,7 +77,7 @@ interface SignupFormProps {
   referral_code?: string;
 }
 
-export default function SignupForm({ referral_code }: SignupFormProps) {
+function SignupFormInner({ referral_code }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [submitting, setSubmitting] = useState(false);
@@ -277,5 +277,13 @@ export default function SignupForm({ referral_code }: SignupFormProps) {
         </form>
       </Form>
     </motion.div>
+  );
+}
+
+export default function SignupForm({ referral_code }: SignupFormProps) {
+  return (
+    <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+      <SignupFormInner referral_code={referral_code} />
+    </Suspense>
   );
 }
