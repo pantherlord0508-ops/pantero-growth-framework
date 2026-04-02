@@ -12,6 +12,14 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import LiveStats from "@/components/dashboard/live-stats";
 
+const companyLogos = [
+  { name: "Google", color: "#4285F4" },
+  { name: "Meta", color: "#0668E1" },
+  { name: "Amazon", color: "#FF9900" },
+  { name: "Microsoft", color: "#00A4EF" },
+  { name: "Stripe", color: "#635BFF" },
+];
+
 export function HeroSection() {
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-radial pt-16">
@@ -65,6 +73,34 @@ export function HeroSection() {
           >
             Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter.
           </motion.p>
+
+          {/* Trust signals - Company logos */}
+          <motion.div
+            className="mt-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.55, duration: 0.6 }}
+          >
+            <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              Join thousands already on the waitlist
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-6 opacity-60 grayscale">
+              {companyLogos.map((logo) => (
+                <div
+                  key={logo.name}
+                  className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-2"
+                >
+                  <div
+                    className="h-4 w-4 rounded"
+                    style={{ background: logo.color }}
+                  />
+                  <span className="text-sm font-semibold text-foreground">
+                    {logo.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
 
           {/* Live stats */}
           <motion.div
