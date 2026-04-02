@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingUser) {
-      const referralLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://pantero.vercel.app"}/join?ref=${existingUser.referral_code}`;
+      const referralLink = `https://pantero.vercel.app/join?ref=${existingUser.referral_code}`;
       return NextResponse.json({
         success: true,
         found: true,
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         }, { status: 500 });
       }
 
-      const referralLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://pantero.vercel.app"}/join?ref=${newReferralCode}`;
+      const referralLink = `https://pantero.vercel.app/join?ref=${newReferralCode}`;
       
       return NextResponse.json({
         success: true,
