@@ -13,6 +13,7 @@ const navLinks = [
   { label: "Milestones", href: "/milestones" },
   { label: "FAQ", href: "/faq" },
   { label: "About", href: "/about" },
+  { label: "Find Link", href: "/lookup" },
 ];
 
 export default function Header() {
