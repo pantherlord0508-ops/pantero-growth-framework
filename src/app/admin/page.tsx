@@ -57,26 +57,33 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authCheckDone, setAuthCheckDone] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Check auth on mount - redirect if not authenticated
   useEffect(() => {
-    // Check if authenticated
-    fetch("/api/admin/login", { method: "GET" })
-      .then((res) => {
-        if (res.ok) {
-          setIsAuthenticated(true);
-        } else {
-          router.push("/admin/login");
-        }
-      })
-      .catch(() => {
-        router.push("/admin/login");
-      })
-      .finally(() => setAuthCheckDone(true));
-  }, [router]);
+    checkAuth();
+  }, []);
 
-  if (!authCheckDone) {
+  async function checkAuth() {
+    try {
+      const res = await fetch("/api/admin/login", { method: "GET", credentials: "include" });
+      if (!res.ok) {
+        router.replace("/admin/login");
+        return;
+      }
+      const data = await res.json();
+      if (!data.authenticated) {
+        router.replace("/admin/login");
+        return;
+      }
+    } catch {
+      router.replace("/admin/login");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -85,10 +92,6 @@ export default function AdminPage() {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   // Users state

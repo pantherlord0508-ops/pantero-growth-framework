@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Loader2, ArrowRight, User } from "lucide-react";
@@ -12,7 +12,37 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Check if already authenticated
+  useEffect(() => {
+    checkAlreadyLoggedIn();
+  }, []);
+
+  async function checkAlreadyLoggedIn() {
+    try {
+      const res = await fetch("/api/admin/login", { method: "GET", credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated) {
+          router.replace("/admin");
+          return;
+        }
+      }
+    } catch {
+      // Continue to login page
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-radial">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -29,7 +59,7 @@ export default function AdminLoginPage() {
 
       if (data.success) {
         toast.success("Welcome back!");
-        router.push("/admin");
+        router.replace("/admin");
       } else {
         toast.error(data.error || "Invalid credentials");
       }
