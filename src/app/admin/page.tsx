@@ -101,6 +101,14 @@ export default function AdminPage() {
     }
   }, [router]);
 
+  // Data fetching effect - must come BEFORE early return
+  useEffect(() => {
+    if (!isReady) return;
+    fetchUsers();
+    fetchSettings();
+    fetchMilestones();
+  }, [userPage, userSearch, isReady]);
+
   // Show loading before auth check
   if (!isReady) {
     return (
@@ -110,16 +118,8 @@ export default function AdminPage() {
     );
   }
 
-  // Data fetching effects - come after all useState and after auth check
-  useEffect(() => {
-    fetchUsers();
-    fetchSettings();
-    fetchMilestones();
-  }, []);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [userPage, userSearch]);
+  // Data fetching is handled in the useEffect above
+  // that depends on isReady
 
   async function fetchUsers() {
     setUsersLoading(true);
