@@ -13,7 +13,9 @@ const DAILY_LIMIT = 75;
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET || "pantero-cron-secret"}`) {
+    const expectedToken = process.env.CRON_SECRET || "pantero-cron-secret";
+    
+    if (authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -25,12 +27,11 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = new Resend(resendApiKey);
-
     const today = new Date().toISOString().split("T")[0];
 
     const { data: sentToday } = await supabaseAdmin
-      .from("email_queue")
-      .select("email", { count: "exact" })
+      .from("email_campaigns")
+      .select("recipient_email", { count: "exact" })
       .eq("status", "sent")
       .gte("sent_at", today);
 
@@ -47,11 +48,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: pendingEmails, error: fetchError } = await supabaseAdmin
-      .from("email_queue")
-      .select("id, email, full_name, subject, body")
+      .from("email_campaigns")
+      .select("id, campaign_id, recipient_email, recipient_name, subject, body")
       .eq("status", "pending")
       .lte("scheduled_for", new Date().toISOString())
-      .order("created_at", { ascending: true })
+      .order("sent_at", { ascending: true })
       .limit(remainingSlots);
 
     if (fetchError) {
@@ -77,35 +78,33 @@ export async function POST(request: NextRequest) {
       try {
         const result = await resend.emails.send({
           from: "Pantero Nexus <onboarding@resend.dev>",
-          to: email.email,
+          to: email.recipient_email,
           subject: email.subject,
-          html: `<p>Hi ${email.full_name || 'there'},</p>${email.body}`,
+          html: `<p>Hi ${email.recipient_name || 'there'},</p>${email.body}`,
         });
 
         if (result.error) {
-          failed++;
-          errors.push(`${email.email}: ${result.error.message}`);
-          
           await supabaseAdmin
-            .from("email_queue")
-            .update({ status: "failed", error: result.error.message })
+            .from("email_campaigns")
+            .update({ status: "failed", error_message: result.error.message, sent_at: new Date().toISOString() })
             .eq("id", email.id);
+          failed++;
+          errors.push(`${email.recipient_email}: ${result.error.message}`);
         } else {
           await supabaseAdmin
-            .from("email_queue")
+            .from("email_campaigns")
             .update({ status: "sent", sent_at: new Date().toISOString() })
             .eq("id", email.id);
           processed++;
         }
       } catch (err) {
-        failed++;
         const errorMsg = err instanceof Error ? err.message : "Unknown error";
-        errors.push(`${email.email}: ${errorMsg}`);
-        
         await supabaseAdmin
-          .from("email_queue")
-          .update({ status: "failed", error: errorMsg })
+          .from("email_campaigns")
+          .update({ status: "failed", error_message: errorMsg, sent_at: new Date().toISOString() })
           .eq("id", email.id);
+        failed++;
+        errors.push(`${email.recipient_email}: ${errorMsg}`);
       }
     }
 

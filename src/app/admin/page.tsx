@@ -88,6 +88,14 @@ export default function AdminPage() {
     remaining_today: number;
     pending_queue: number;
   } | null>(null);
+  const [emailCampaigns, setEmailCampaigns] = useState<{
+    campaign_id: string;
+    subject: string;
+    sent: number;
+    failed: number;
+    pending: number;
+    status: string;
+  }[]>([]);
 
   // Import state
   const [importing, setImporting] = useState(false);
@@ -238,8 +246,11 @@ export default function AdminPage() {
         setEmailQueueStatus({
           sent_today: data.sent_today,
           remaining_today: data.remaining_today,
-          pending_queue: data.pending_queue
+          pending_queue: data.total_pending
         });
+        if (data.campaigns) {
+          setEmailCampaigns(data.campaigns);
+        }
       }
     } catch (err) {
       console.error("Failed to load email queue status:", err);
@@ -780,17 +791,43 @@ export default function AdminPage() {
                       <p className="mb-2 text-sm font-medium text-foreground">Email Queue Status (75/day limit)</p>
                       <div className="grid grid-cols-3 gap-4 text-center text-sm">
                         <div>
-                          <p className="font-display text-xl font-bold text-green-400">{emailQueueStatus.sent_today}</p>
+                          <p className="font-display text-xl font-bold text-green-400">{emailQueueStatus?.sent_today ?? 0}</p>
                           <p className="text-xs text-muted-foreground">Sent Today</p>
                         </div>
                         <div>
-                          <p className="font-display text-xl font-bold text-primary">{emailQueueStatus.remaining_today}</p>
+                          <p className="font-display text-xl font-bold text-primary">{emailQueueStatus?.remaining_today ?? 0}</p>
                           <p className="text-xs text-muted-foreground">Remaining Today</p>
                         </div>
                         <div>
-                          <p className="font-display text-xl font-bold text-yellow-400">{emailQueueStatus.pending_queue}</p>
+                          <p className="font-display text-xl font-bold text-yellow-400">{emailQueueStatus?.pending_queue ?? 0}</p>
                           <p className="text-xs text-muted-foreground">Queued</p>
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Campaign History */}
+                  {emailCampaigns.length > 0 && (
+                    <div className="rounded-lg border border-border bg-secondary/50 p-4">
+                      <p className="mb-3 text-sm font-medium text-foreground">Campaign History</p>
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {emailCampaigns.slice(0, 5).map((campaign) => (
+                          <div key={campaign.campaign_id} className="flex items-center justify-between rounded bg-card p-2 text-sm">
+                            <div>
+                              <p className="font-medium text-foreground truncate max-w-[200px]">{campaign.subject}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {campaign.sent} sent • {campaign.failed} failed • {campaign.pending} pending
+                              </p>
+                            </div>
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              campaign.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                              campaign.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-gray-500/20 text-gray-400'
+                            }`}>
+                              {campaign.status === 'in_progress' ? 'In Progress' : campaign.status}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}

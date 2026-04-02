@@ -8,7 +8,6 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 const resendApiKey = process.env.RESEND_API_KEY;
-
 const DAILY_LIMIT = 75;
 
 export async function POST(request: NextRequest) {
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
     if (!resendApiKey) {
       return NextResponse.json({
         success: false,
-        error: "RESEND_API_KEY environment variable is not set"
+        error: "RESEND_API_KEY not configured"
       }, { status: 500 });
     }
 
@@ -25,15 +24,11 @@ export async function POST(request: NextRequest) {
 
     let subject: string;
     let emailBody: string;
-    let attachments: File[] = [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
       subject = formData.get("subject") as string;
       emailBody = formData.get("body") as string;
-      
-      const attachmentFiles = formData.getAll("attachments") as File[];
-      attachments = attachmentFiles.filter(f => f.size > 0);
     } else {
       const jsonBody = await request.json();
       subject = jsonBody.subject;
@@ -47,7 +42,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const { data: users, error } = await supabaseAdmin
+    const { data: allUsers, error } = await supabaseAdmin
       .from("waitlist_users")
       .select("email, full_name");
 
@@ -58,108 +53,120 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    if (!users || users.length === 0) {
+    if (!allUsers || allUsers.length === 0) {
       return NextResponse.json({
-        success: true,
-        sent_count: 0,
-        message: "No recipients found"
-      });
+        success: false,
+        error: "No users found"
+      }, { status: 400 });
     }
 
+    const campaignId = crypto.randomUUID();
     const today = new Date().toISOString().split("T")[0];
 
-    const { data: existingEmails } = await supabaseAdmin
-      .from("email_queue")
-      .select("email")
+    const { data: existingSent } = await supabaseAdmin
+      .from("email_campaigns")
+      .select("recipient_email")
       .eq("status", "sent")
       .gte("sent_at", today);
 
-    const sentToday = existingEmails?.length || 0;
-    const remainingSlots = Math.max(0, DAILY_LIMIT - sentToday);
+    const sentEmailsToday = new Set(existingSent?.map(e => e.recipient_email) || []);
+    
+    const { data: alreadySentInCampaign } = await supabaseAdmin
+      .from("email_campaigns")
+      .select("recipient_email")
+      .eq("campaign_id", campaignId)
+      .eq("status", "sent");
 
-    const emailsToSendNow = users.slice(0, remainingSlots);
-    const emailsQueued = users.slice(remainingSlots);
+    const sentInCampaign = new Set(alreadySentInCampaign?.map(e => e.recipient_email) || []);
+
+    const usersToProcess = allUsers.filter(u => 
+      !sentEmailsToday.has(u.email) && !sentInCampaign.has(u.email)
+    );
+
+    const usersToSendNow = usersToProcess.slice(0, DAILY_LIMIT);
+    const remainingUsers = usersToProcess.slice(DAILY_LIMIT);
 
     let sentNow = 0;
     let failedNow = 0;
-    const failedNowErrors: string[] = [];
+    const errors: string[] = [];
 
-    if (emailsToSendNow.length > 0) {
-      const batchPromises = emailsToSendNow.map(async (user) => {
-        try {
-          const emailData: {
-            from: string;
-            to: string;
-            subject: string;
-            html: string;
-            attachments?: { filename: string; content: string; }[];
-          } = {
-            from: "Pantero Nexus <onboarding@resend.dev>",
-            to: user.email,
+    for (const user of usersToSendNow) {
+      try {
+        const result = await resend.emails.send({
+          from: "Pantero Nexus <onboarding@resend.dev>",
+          to: user.email,
+          subject: subject,
+          html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,
+        });
+
+        if (result.error) {
+          await supabaseAdmin.from("email_campaigns").insert({
+            campaign_id: campaignId,
+            recipient_email: user.email,
+            recipient_name: user.full_name,
             subject: subject,
-            html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,
-          };
-
-          const result = await resend.emails.send(emailData);
-          
-          if (result.error) {
-            return { success: false, email: user.email, error: result.error.message };
-          }
-          
-          await supabaseAdmin.from("email_queue").insert({
-            email: user.email,
+            body: emailBody,
+            status: "failed",
+            error_message: result.error.message,
+            sent_at: new Date().toISOString(),
+          });
+          failedNow++;
+          errors.push(`${user.email}: ${result.error.message}`);
+        } else {
+          await supabaseAdmin.from("email_campaigns").insert({
+            campaign_id: campaignId,
+            recipient_email: user.email,
+            recipient_name: user.full_name,
             subject: subject,
             body: emailBody,
             status: "sent",
             sent_at: new Date().toISOString(),
           });
-          
-          return { success: true, email: user.email };
-        } catch (err) {
-          return { success: false, email: user.email, error: err instanceof Error ? err.message : "Unknown error" };
-        }
-      });
-
-      const batchResults = await Promise.all(batchPromises);
-      
-      for (const result of batchResults) {
-        if (result.success) {
           sentNow++;
-        } else {
-          failedNow++;
-          failedNowErrors.push(`${result.email}: ${result.error}`);
         }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : "Unknown error";
+        await supabaseAdmin.from("email_campaigns").insert({
+          campaign_id: campaignId,
+          recipient_email: user.email,
+          recipient_name: user.full_name,
+          subject: subject,
+          body: emailBody,
+          status: "failed",
+          error_message: errorMsg,
+          sent_at: new Date().toISOString(),
+        });
+        failedNow++;
+        errors.push(`${user.email}: ${errorMsg}`);
       }
     }
 
-    let queuedCount = 0;
-    if (emailsQueued.length > 0) {
-      const insertPromises = emailsQueued.map(user => 
-        supabaseAdmin.from("email_queue").insert({
-          email: user.email,
-          full_name: user.full_name,
+    const queuedCount = remainingUsers.length;
+    if (queuedCount > 0) {
+      for (const user of remainingUsers) {
+        await supabaseAdmin.from("email_campaigns").insert({
+          campaign_id: campaignId,
+          recipient_email: user.email,
+          recipient_name: user.full_name,
           subject: subject,
           body: emailBody,
           status: "pending",
           scheduled_for: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        })
-      );
-      
-      const insertResults = await Promise.all(insertPromises);
-      queuedCount = insertResults.filter(r => !r.error).length;
+        });
+      }
     }
 
     return NextResponse.json({
       success: true,
+      campaign_id: campaignId,
       sent_now: sentNow,
       failed_now: failedNow,
       queued: queuedCount,
-      total_recipients: users.length,
+      total_recipients: allUsers.length,
       daily_limit: DAILY_LIMIT,
-      sent_today: sentToday,
-      remaining_today: Math.max(0, DAILY_LIMIT - sentToday - sentNow),
-      next_batch: queuedCount > 0 ? "Tomorrow at midnight" : null,
-      errors: failedNowErrors.length > 0 ? failedNowErrors : undefined
+      remaining_today: Math.max(0, DAILY_LIMIT - sentNow),
+      next_batch: queuedCount > 0 ? "Tomorrow at midnight (or run process-queue)" : null,
+      errors: errors.length > 0 ? errors : undefined
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
@@ -172,33 +179,77 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const { data: campaigns, error } = await supabaseAdmin
+      .from("email_campaigns")
+      .select("campaign_id, subject, status, sent_at, error_message")
+      .order("sent_at", { ascending: false });
 
-    const { data: sentToday } = await supabaseAdmin
-      .from("email_queue")
-      .select("email", { count: "exact" })
+    if (error) {
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
+    }
+
+    const campaignMap: Record<string, {
+      campaign_id: string;
+      subject: string;
+      sent: number;
+      failed: number;
+      pending: number;
+      last_sent: string | null;
+      status: string;
+    }> = {};
+
+    for (const row of campaigns || []) {
+      if (!campaignMap[row.campaign_id]) {
+        campaignMap[row.campaign_id] = {
+          campaign_id: row.campaign_id,
+          subject: row.subject,
+          sent: 0,
+          failed: 0,
+          pending: 0,
+          last_sent: null,
+          status: row.status === "sent" ? "in_progress" : row.status
+        };
+      }
+      
+      if (row.status === "sent") {
+        campaignMap[row.campaign_id].sent++;
+        if (!campaignMap[row.campaign_id].last_sent || row.sent_at > campaignMap[row.campaign_id].last_sent) {
+          campaignMap[row.campaign_id].last_sent = row.sent_at;
+        }
+      } else if (row.status === "failed") {
+        campaignMap[row.campaign_id].failed++;
+      } else if (row.status === "pending") {
+        campaignMap[row.campaign_id].pending++;
+      }
+    }
+
+    const campaignList = Object.values(campaignMap).map(c => ({
+      ...c,
+      status: c.pending > 0 ? "in_progress" : c.sent > 0 ? "completed" : "pending"
+    }));
+
+    const today = new Date().toISOString().split("T")[0];
+    const { data: todaySent } = await supabaseAdmin
+      .from("email_campaigns")
+      .select("recipient_email", { count: "exact" })
       .eq("status", "sent")
       .gte("sent_at", today);
 
-    const { data: pending } = await supabaseAdmin
-      .from("email_queue")
-      .select("email", { count: "exact" })
+    const { data: allPending } = await supabaseAdmin
+      .from("email_campaigns")
+      .select("recipient_email", { count: "exact" })
       .eq("status", "pending");
-
-    const { data: recentSent } = await supabaseAdmin
-      .from("email_queue")
-      .select("email, sent_at")
-      .eq("status", "sent")
-      .order("sent_at", { ascending: false })
-      .limit(10);
 
     return NextResponse.json({
       success: true,
+      campaigns: campaignList,
       daily_limit: DAILY_LIMIT,
-      sent_today: sentToday?.length || 0,
-      remaining_today: Math.max(0, DAILY_LIMIT - (sentToday?.length || 0)),
-      pending_queue: pending?.length || 0,
-      recent_sent: recentSent || []
+      sent_today: todaySent?.length || 0,
+      remaining_today: Math.max(0, DAILY_LIMIT - (todaySent?.length || 0)),
+      total_pending: allPending?.length || 0
     });
   } catch (err) {
     return NextResponse.json({
