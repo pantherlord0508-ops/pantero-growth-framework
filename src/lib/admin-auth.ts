@@ -16,13 +16,10 @@ export function validateAdminCredentials(username: string, password: string): bo
 
 export function isValidAdminToken(token: string): boolean {
   if (!token) return false;
-  
   const lastDot = token.lastIndexOf(".");
   if (lastDot === -1) return false;
-  
   const data = token.substring(0, lastDot);
   const signature = token.substring(lastDot + 1);
   const expected = createHmac("sha256", SECRET_KEY).update(data).digest("hex");
-  
   return signature === expected;
 }
