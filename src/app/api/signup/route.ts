@@ -9,6 +9,7 @@ import {
   recordReferral,
   recalculatePositions,
   dispatchWelcomeEmail,
+  CreatedUser,
 } from "@/lib/services/waitlist";
 import { apiError, apiSuccess, handleZodError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
@@ -88,13 +89,25 @@ export async function POST(request: NextRequest) {
       referredBy = await findReferrerByCode(referral_code);
     }
 
-    const newUser = await createWaitlistUser(parsed.data, position, uniqueCode, referredBy);
-
-    if (referredBy) {
-      await recordReferral(referredBy, newUser.id);
-      await recalculatePositions();
+    let newUser: CreatedUser;
+    try {
+      newUser = await createWaitlistUser(parsed.data, position, uniqueCode, referredBy);
+    } catch (createErr) {
+      log.error({ err: createErr }, "Failed to create waitlist user");
+      return apiError("CREATE_FAILED", "Failed to create user. Please try again.", 500);
     }
 
+    // Record referral and recalculate positions (non-critical, don't fail on error)
+    if (referredBy) {
+      try {
+        await recordReferral(referredBy, newUser.id);
+        await recalculatePositions();
+      } catch (refErr) {
+        log.warn({ err: refErr }, "Failed to record referral or recalculate positions (non-critical)");
+      }
+    }
+
+    // Send welcome email (fire-and-forget, don't block signup)
     dispatchWelcomeEmail(email, parsed.data.full_name, uniqueCode, newUser.position);
 
     log.info({ userId: newUser.id, position: newUser.position }, "User signed up");

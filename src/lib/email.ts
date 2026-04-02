@@ -453,7 +453,7 @@ export async function sendBulkEmail(
   for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
     const batch = recipients.slice(i, i + BATCH_SIZE).map((r) => ({
       from: DEFAULT_FROM,
-      to: [r.email],
+      to: r.email,
       subject,
       html: wrappedHtml,
     }));
