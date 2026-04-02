@@ -6,64 +6,13 @@ import { generateUniqueReferralCode } from "@/lib/services/waitlist";
 
 const log = createLogger({ route: "api/admin/import" });
 
-interface CsvRow {
-  position: number;
-  email: string;
-  name: string;
-  phone: string;
-  joined_at: string;
-}
-
-function parseCsvLine(line: string): string[] {
-  const fields: string[] = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
-      fields.push(current.trim());
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-  fields.push(current.trim());
-  return fields;
-}
-
-function parseCsv(csvContent: string): CsvRow[] {
-  const lines = csvContent.trim().split("\n");
-  if (lines.length < 2) return [];
-
-  const rows: CsvRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const fields = parseCsvLine(lines[i]);
-    if (fields.length >= 5) {
-      const email = fields[1].replace(/^"|"$/g, "").trim().toLowerCase();
-      if (email && email.includes("@")) {
-        rows.push({
-          position: parseInt(fields[0].replace(/^"|"$/g, ""), 10) || i,
-          email,
-          name: fields[2].replace(/^"|"$/g, "").trim() || "Unknown",
-          phone: fields[3].replace(/^"|"$/g, "").trim() || "",
-          joined_at: fields[4].replace(/^"|"$/g, "").trim(),
-        });
-      }
-    }
-  }
-  return rows;
-}
-
 export async function POST(request: NextRequest) {
   return withErrorHandling(async () => {
     log.info("CSV import request started");
 
     const contentType = request.headers.get("content-type") || "";
-
     let csvContent: string;
+    let filename = "import.csv";
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
@@ -71,6 +20,7 @@ export async function POST(request: NextRequest) {
       if (!file) {
         return apiError("VALIDATION_ERROR", "No CSV file provided", 400);
       }
+      filename = file.name;
       csvContent = await file.text();
     } else {
       const body = await request.json();
@@ -80,11 +30,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const rows = parseCsv(csvContent);
-    log.info({ rowCount: rows.length }, "Parsed CSV rows");
+    // Store CSV file to Supabase Storage
+    const timestamp = Date.now();
+    const storageKey = `csv_imports/${timestamp}-${filename}`;
+    
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+      .from("csv-files")
+      .upload(storageKey, csvContent, {
+        contentType: "text/csv",
+        upsert: true,
+      });
 
-    if (rows.length === 0) {
-      return apiError("VALIDATION_ERROR", "No valid rows found in CSV", 400);
+    if (uploadError) {
+      log.warn({ err: uploadError }, "Failed to upload CSV to storage, continuing with import only");
+    } else {
+      log.info({ storageKey: uploadData?.path }, "CSV uploaded to Supabase Storage");
+    }
+
+    // Parse CSV
+    const lines = csvContent.trim().split("\n");
+    if (lines.length < 2) {
+      return apiError("VALIDATION_ERROR", "CSV file is empty or has no data rows", 400);
     }
 
     // Get existing emails to skip duplicates
@@ -100,34 +66,53 @@ export async function POST(request: NextRequest) {
     let skipped = 0;
     const errors: string[] = [];
 
-    for (const row of rows) {
-      if (existingEmails.has(row.email)) {
+    // Parse and import each row
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // Simple CSV parsing
+      const fields = line.split(",").map(f => f.replace(/^"|"$/g, "").trim());
+      
+      if (fields.length < 2) continue;
+
+      const email = fields[1]?.toLowerCase();
+      if (!email || !email.includes("@")) {
+        errors.push(`Row ${i}: Invalid email`);
+        continue;
+      }
+
+      if (existingEmails.has(email)) {
         skipped++;
         continue;
       }
 
       try {
         const referralCode = await generateUniqueReferralCode();
+        const fullName = fields[2]?.trim() || "Unknown";
+        const whatsappNumber = fields[3]?.trim() || "";
+        const position = parseInt(fields[0], 10) || (i);
+
         const { error } = await supabaseAdmin
           .from("waitlist_users")
           .insert({
-            full_name: row.name || "Unknown",
-            email: row.email,
-            whatsapp_number: row.phone || "",
+            full_name: fullName,
+            email: email,
+            whatsapp_number: whatsappNumber,
             referral_code: referralCode,
-            position: row.position,
+            position: position,
             source: "csv_import",
           });
 
         if (error) {
-          errors.push(`${row.email}: ${error.message}`);
+          errors.push(`${email}: ${error.message}`);
         } else {
           imported++;
-          existingEmails.add(row.email);
+          existingEmails.add(email);
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        errors.push(`${row.email}: ${message}`);
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        errors.push(`${email}: ${msg}`);
       }
     }
 
@@ -137,8 +122,27 @@ export async function POST(request: NextRequest) {
       success: true,
       imported,
       skipped,
-      total: rows.length,
+      total: lines.length - 1,
       errors: errors.length > 0 ? errors : undefined,
+      storageKey: uploadData?.path || null,
+    });
+  });
+}
+
+export async function GET() {
+  return withErrorHandling(async () => {
+    // Check Supabase connection and return status
+    const { data: tableCount, error: tableError } = await supabaseAdmin
+      .from("waitlist_users")
+      .select("*", { count: "exact", head: true });
+
+    const { data: storageBuckets } = await supabaseAdmin.storage.listBuckets();
+
+    return apiSuccess({
+      status: "ok",
+      database_connected: !tableError,
+      total_users: tableCount || 0,
+      storage_buckets: storageBuckets?.map(b => b.name) || [],
     });
   });
 }
