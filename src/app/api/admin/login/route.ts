@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24,
+      // Don't set domain - let it default to current domain
     });
 
     log.info({ username }, "Admin login successful");
