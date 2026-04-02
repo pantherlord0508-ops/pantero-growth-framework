@@ -39,7 +39,7 @@ if (!resendApiKey) {
 const resend = new Resend(resendApiKey);
 
 // Default sender - Use Resend's free tier onboarding address
-const DEFAULT_FROM = "Pantero <onboarding@resend.dev>";
+const DEFAULT_FROM = "Pantero Nexus <onboarding@resend.dev>";
 
 /**
  * Returns the application base URL from the environment, falling back to

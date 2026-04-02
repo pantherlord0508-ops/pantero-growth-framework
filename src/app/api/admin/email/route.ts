@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
             html: string;
             attachments?: { filename: string; content: string; }[];
           } = {
-            from: "Pantero <onboarding@resend.dev>",
+            from: "Pantero Nexus <onboarding@resend.dev>",
             to: user.email,
             subject: subject,
             html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,

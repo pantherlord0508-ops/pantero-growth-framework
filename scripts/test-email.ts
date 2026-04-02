@@ -59,7 +59,7 @@ async function main() {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: "Pantero <onboarding@resend.dev>",
+      from: "Pantero Nexus <onboarding@resend.dev>",
       to: TEST_EMAIL,
       subject: "Pantero Email System Test",
       html,
