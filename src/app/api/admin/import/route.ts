@@ -4,15 +4,67 @@ import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-response";
 import { createLogger } from "@/lib/logger";
 import { generateUniqueReferralCode } from "@/lib/services/waitlist";
 
-const log = createLogger({ route: "api/admin/import" });
+const log = createLogger({ route: "api/admin/import-csv" });
+
+interface CsvRow {
+  position: number;
+  email: string;
+  name: string;
+  phone: string;
+  joined_at: string;
+}
+
+function parseCsvLine(line: string): string[] {
+  const fields: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      fields.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
+function parseCsv(csvContent: string): CsvRow[] {
+  const lines = csvContent.trim().split("\n");
+  if (lines.length < 2) return [];
+
+  const rows: CsvRow[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const fields = parseCsvLine(lines[i]);
+    if (fields.length >= 2) {
+      const email = fields[1]?.replace(/^"|"$/g, "").trim().toLowerCase() || "";
+      if (email && email.includes("@")) {
+        rows.push({
+          position: parseInt(fields[0]?.replace(/^"|"$/g, ""), 10) || i,
+          email,
+          name: fields[2]?.replace(/^"|"$/g, "").trim() || "Unknown",
+          phone: fields[3]?.replace(/^"|"$/g, "").trim() || "",
+          joined_at: fields[4]?.replace(/^"|"$/g, "").trim() || "",
+        });
+      }
+    }
+  }
+  return rows;
+}
 
 export async function POST(request: NextRequest) {
   return withErrorHandling(async () => {
     log.info("CSV import request started");
 
-    const contentType = request.headers.get("content-type") || "";
     let csvContent: string;
-    let filename = "import.csv";
+    let filename = "waitlist_sign_ups.csv";
+
+    const contentType = request.headers.get("content-type") || "";
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
@@ -30,27 +82,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Store CSV file to Supabase Storage
-    const timestamp = Date.now();
-    const storageKey = `csv_imports/${timestamp}-${filename}`;
-    
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from("csv-files")
-      .upload(storageKey, csvContent, {
-        contentType: "text/csv",
-        upsert: true,
-      });
-
-    if (uploadError) {
-      log.warn({ err: uploadError }, "Failed to upload CSV to storage, continuing with import only");
-    } else {
-      log.info({ storageKey: uploadData?.path }, "CSV uploaded to Supabase Storage");
-    }
-
     // Parse CSV
-    const lines = csvContent.trim().split("\n");
-    if (lines.length < 2) {
-      return apiError("VALIDATION_ERROR", "CSV file is empty or has no data rows", 400);
+    const rows = parseCsv(csvContent);
+    log.info({ rowCount: rows.length }, "Parsed CSV rows");
+
+    if (rows.length === 0) {
+      return apiError("VALIDATION_ERROR", "No valid rows found in CSV", 400);
     }
 
     // Get existing emails to skip duplicates
@@ -62,87 +99,76 @@ export async function POST(request: NextRequest) {
       (existingUsers || []).map((u) => u.email.toLowerCase())
     );
 
+    log.info({ existingCount: existingEmails.size }, "Existing users found");
+
     let imported = 0;
     let skipped = 0;
     const errors: string[] = [];
 
-    // Parse and import each row
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+    // Process in batches for reliability
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      const inserts = [];
 
-      // Simple CSV parsing
-      const fields = line.split(",").map(f => f.replace(/^"|"$/g, "").trim());
-      
-      if (fields.length < 2) continue;
+      for (const row of batch) {
+        if (existingEmails.has(row.email)) {
+          skipped++;
+          continue;
+        }
 
-      const email = fields[1]?.toLowerCase();
-      if (!email || !email.includes("@")) {
-        errors.push(`Row ${i}: Invalid email`);
-        continue;
-      }
-
-      if (existingEmails.has(email)) {
-        skipped++;
-        continue;
-      }
-
-      try {
-        const referralCode = await generateUniqueReferralCode();
-        const fullName = fields[2]?.trim() || "Unknown";
-        const whatsappNumber = fields[3]?.trim() || "";
-        const position = parseInt(fields[0], 10) || (i);
-
-        const { error } = await supabaseAdmin
-          .from("waitlist_users")
-          .insert({
-            full_name: fullName,
-            email: email,
-            whatsapp_number: whatsappNumber,
+        try {
+          const referralCode = await generateUniqueReferralCode();
+          inserts.push({
+            full_name: row.name || "Unknown",
+            email: row.email,
+            whatsapp_number: row.phone || "",
             referral_code: referralCode,
-            position: position,
+            position: row.position,
+            joined_at: new Date().toISOString(),
             source: "csv_import",
           });
+          existingEmails.add(row.email);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Unknown error";
+          errors.push(`${row.email}: ${msg}`);
+        }
+      }
+
+      if (inserts.length > 0) {
+        const { error } = await supabaseAdmin
+          .from("waitlist_users")
+          .insert(inserts);
 
         if (error) {
-          errors.push(`${email}: ${error.message}`);
+          errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
         } else {
-          imported++;
-          existingEmails.add(email);
+          imported += inserts.length;
         }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Unknown error";
-        errors.push(`${email}: ${msg}`);
       }
     }
 
     log.info({ imported, skipped, errors: errors.length }, "CSV import completed");
 
+    // Upload CSV to storage
+    const timestamp = Date.now();
+    try {
+      await supabaseAdmin.storage
+        .from("csv-files")
+        .upload(`csv_imports/${timestamp}-${filename}`, csvContent, {
+          contentType: "text/csv",
+          upsert: true,
+        });
+    } catch (storageErr) {
+      log.warn({ err: storageErr }, "Failed to upload CSV to storage");
+    }
+
     return apiSuccess({
       success: true,
       imported,
       skipped,
-      total: lines.length - 1,
+      total: rows.length,
       errors: errors.length > 0 ? errors : undefined,
-      storageKey: uploadData?.path || null,
-    });
-  });
-}
-
-export async function GET() {
-  return withErrorHandling(async () => {
-    // Check Supabase connection and return status
-    const { data: tableCount, error: tableError } = await supabaseAdmin
-      .from("waitlist_users")
-      .select("*", { count: "exact", head: true });
-
-    const { data: storageBuckets } = await supabaseAdmin.storage.listBuckets();
-
-    return apiSuccess({
-      status: "ok",
-      database_connected: !tableError,
-      total_users: tableCount || 0,
-      storage_buckets: storageBuckets?.map(b => b.name) || [],
     });
   });
 }
