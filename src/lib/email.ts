@@ -38,8 +38,8 @@ if (!resendApiKey) {
 }
 const resend = new Resend(resendApiKey);
 
-// Default sender - IMPORTANT: Change this once your domain is verified in Resend dashboard
-const DEFAULT_FROM = process.env.SMTP_FROM || "Pantero <onboarding@resend.dev>";
+// Default sender - Use Resend's free tier onboarding address
+const DEFAULT_FROM = "Pantero <onboarding@resend.dev>";
 
 /**
  * Returns the application base URL from the environment, falling back to
