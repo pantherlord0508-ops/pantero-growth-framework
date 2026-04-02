@@ -132,11 +132,22 @@ export default function AdminPage() {
         sort_order: "desc",
       });
       const res = await fetch(`/api/admin/users?${params}`);
+      
       if (res.status === 401) {
         router.push("/admin/login");
         return;
       }
+      
       const data = await res.json();
+      
+      // Check for API-level errors
+      if (!data.success) {
+        console.error("Failed to fetch users:", data.error);
+        toast.error(data.error || "Failed to load users");
+        setUsers([]);
+        return;
+      }
+      
       if (data.users) {
         setUsers(data.users);
         setUserTotal(data.total);
@@ -144,6 +155,7 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error("Failed to load users:", err);
+      toast.error("Network error loading users");
     } finally {
       setUsersLoading(false);
     }
@@ -154,9 +166,15 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/stats");
       const data = await res.json();
+      
+      if (!data.success) {
+        console.error("Failed to fetch stats:", data.error);
+        return;
+      }
+      
       setAdminStats(data);
-    } catch {
-      toast.error("Failed to load stats");
+    } catch (err) {
+      console.error("Failed to load stats:", err);
     } finally {
       setStatsLoading(false);
     }
@@ -166,8 +184,16 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/milestones");
       const data = await res.json();
+      
+      if (!data.success) {
+        console.error("Failed to fetch milestones:", data.error);
+        return;
+      }
+      
       if (data.milestones) setMilestones(data.milestones);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to load milestones:", err);
+    }
   }
 
   async function fetchSettings() {
@@ -175,6 +201,13 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/settings");
       const data = await res.json();
+      
+      if (!data.success) {
+        console.error("Failed to fetch settings:", data.error);
+        toast.error(data.error || "Failed to load settings");
+        return;
+      }
+      
       if (data.settings) {
         const map: Record<string, string> = {};
         data.settings.forEach((s: AdminSetting) => {
@@ -182,8 +215,9 @@ export default function AdminPage() {
         });
         setSettings(map);
       }
-    } catch {
-      toast.error("Failed to load settings");
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+      toast.error("Network error loading settings");
     } finally {
       setSettingsLoading(false);
     }

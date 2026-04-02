@@ -1,64 +1,97 @@
-import { NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { bulkEmailSchema } from "@/lib/schemas";
-import { apiSuccess, handleZodError, withErrorHandling } from "@/lib/api-response";
-import { createLogger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 
-const log = createLogger({ route: "api/admin/email" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(request: NextRequest) {
-  return withErrorHandling(async () => {
+  try {
     const body = await request.json();
-    const parsed = bulkEmailSchema.safeParse(body);
+    const { subject, body: emailBody, filter } = body;
 
-    if (!parsed.success) {
-      return handleZodError(parsed.error);
+    if (!subject || !emailBody) {
+      return NextResponse.json({
+        success: false,
+        error: "Subject and body are required"
+      }, { status: 400 });
     }
 
-    const { subject, body: emailBody, filter } = parsed.data;
-
-    log.info({ subject, hasFilter: !!filter }, "Bulk email request started");
-
+    // Fetch users
     let query = supabaseAdmin
       .from("waitlist_users")
       .select("email, full_name");
 
-    if (filter) {
-      if (filter.min_referrals !== undefined) {
-        query = query.gte("referral_count", filter.min_referrals);
-      }
-      if (filter.max_referrals !== undefined) {
-        query = query.lte("referral_count", filter.max_referrals);
-      }
+    if (filter?.min_referrals) {
+      query = query.gte("referral_count", filter.min_referrals);
+    }
+    if (filter?.max_referrals) {
+      query = query.lte("referral_count", filter.max_referrals);
     }
 
     const { data: users, error } = await query;
 
     if (error) {
-      log.error({ err: error }, "Failed to fetch recipients");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
     if (!users || users.length === 0) {
-      log.info("No recipients found for bulk email");
-      return apiSuccess({ success: true, sent_count: 0 });
+      return NextResponse.json({
+        success: true,
+        sent_count: 0,
+        message: "No recipients found"
+      });
     }
 
-    const { sendBulkEmail } = await import("@/lib/email");
-    const recipients = users.map((u) => ({ email: u.email, name: u.full_name }));
-    const result = await sendBulkEmail(subject, emailBody, recipients);
-
-    log.info({ recipientCount: recipients.length, sent: result.sent, failed: result.failed }, "Bulk email completed");
-
-    if (result.errors.length > 0) {
-      log.warn({ errors: result.errors }, "Bulk email had errors");
+    // Check if Resend is configured
+    if (!resend || !resendApiKey) {
+      return NextResponse.json({
+        success: false,
+        error: "Email service not configured. Check RESEND_API_KEY."
+      }, { status: 500 });
     }
 
-    return apiSuccess({
-      success: result.failed === 0,
-      sent_count: result.sent,
-      failed_count: result.failed,
-      errors: result.errors,
+    // Send emails
+    let sent = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    // Send to all users
+    for (const user of users) {
+      try {
+        await resend.emails.send({
+          from: "Pantero <onboarding@resend.dev>",
+          to: user.email,
+          subject: subject,
+          html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,
+        });
+        sent++;
+      } catch (err) {
+        failed++;
+        errors.push(`${user.email}: ${err instanceof Error ? err.message : 'Failed'}`);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      sent_count: sent,
+      failed_count: failed,
+      total_recipients: users.length,
+      errors: errors.length > 0 ? errors : undefined
     });
-  });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }
