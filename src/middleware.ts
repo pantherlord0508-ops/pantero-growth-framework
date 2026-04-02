@@ -5,29 +5,44 @@ function getTokenSecret(): string {
   return process.env.ADMIN_PASSWORD || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 }
 
-function isValidAdminToken(token: string): boolean {
+export function generateAdminToken(username: string): string {
+  const data = `${username}:${Date.now()}:${randomBytes(16).toString("hex")}`;
+  const signature = createHmac("sha256", getTokenSecret()).update(data).digest("hex");
+  return `${data}.${signature}`;
+}
+
+export function validateAdminCredentials(username: string, password: string): boolean {
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminUsername || !adminPassword) return false;
+  return username === adminUsername && password === adminPassword;
+}
+
+function constantTimeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  try {
+    return timingSafeEqual(bufA, bufB);
+  } catch { return false; }
+}
+
+export function isValidAdminToken(token: string): boolean {
   if (!token) return false;
+  const secret = getTokenSecret();
+  if (!secret) return false;
   
-  // Token format is data.signature (separated by last dot)
   const lastDot = token.lastIndexOf(".");
   if (lastDot === -1) return false;
   
   const data = token.substring(0, lastDot);
   const signature = token.substring(lastDot + 1);
-  const secret = getTokenSecret();
-  
-  if (!secret || !data || !signature) return false;
   
   try {
     const expected = createHmac("sha256", secret).update(data).digest("hex");
     if (signature.length !== expected.length) return false;
-    
-    const sigBuf = Buffer.from(signature);
-    const expBuf = Buffer.from(expected);
-    return timingSafeEqual(sigBuf, expBuf);
-  } catch {
-    return false;
-  }
+    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  } catch { return false; }
 }
 
 export function middleware(request: NextRequest) {
@@ -35,7 +50,6 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("admin_token")?.value;
   const isAuthenticated = token ? isValidAdminToken(token) : false;
 
-  // Allow login page and login API without auth
   if (pathname === "/admin/login" || pathname === "/api/admin/login") {
     if (pathname === "/admin/login" && isAuthenticated) {
       return NextResponse.redirect(new URL("/admin", request.url));
@@ -43,7 +57,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Redirect to login if not authenticated
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     if (!isAuthenticated) {
       if (pathname.startsWith("/api/")) {
@@ -57,8 +70,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/api/admin/:path*",
-  ],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };
