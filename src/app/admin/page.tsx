@@ -59,12 +59,23 @@ export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
+  // Client-side auth check
   useEffect(() => {
-    setIsReady(true);
-  }, []);
+    const isAuth = localStorage.getItem("admin_auth");
+    if (!isAuth) {
+      router.push("/admin/login");
+    } else {
+      setIsReady(true);
+    }
+  }, [router]);
 
-  // Let the page load - middleware handles auth protection
-  // If not authenticated, middleware will redirect to /admin/login
+  if (!isReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Loader2 className="h-8 w-8 animate-spin text-[#c9a54e]" />
+      </div>
+    );
+  }
 
   // Users state
   const [users, setUsers] = useState<WaitlistUser[]>([]);
