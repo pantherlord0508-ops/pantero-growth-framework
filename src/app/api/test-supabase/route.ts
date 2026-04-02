@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-
-// Simple Supabase client without generics
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
@@ -10,23 +8,23 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
   try {
-    // Test connection with simple query
+    // Simple count query
     const { data, error } = await supabase
       .from("waitlist_users")
-      .select("count")
-      .count();
+      .select("*", { count: "exact", head: true });
 
     if (error) {
       return NextResponse.json({
         success: false,
         error: error.message,
-        hint: "Check Supabase credentials and RLS policies"
+        code: error.code,
+        details: error.details
       }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      count: data?.[0]?.count || 0,
+      count: data?.length || 0,
       message: "Supabase connection OK"
     });
   } catch (err) {
