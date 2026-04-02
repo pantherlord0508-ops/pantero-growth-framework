@@ -57,6 +57,11 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
 
   // Let the page load - middleware handles auth protection
   // If not authenticated, middleware will redirect to /admin/login
@@ -114,14 +119,18 @@ export default function AdminPage() {
         sort_order: "desc",
       });
       const res = await fetch(`/api/admin/users?${params}`);
+      if (res.status === 401) {
+        router.push("/admin/login");
+        return;
+      }
       const data = await res.json();
       if (data.users) {
         setUsers(data.users);
         setUserTotal(data.total);
         setUserTotalPages(data.totalPages);
       }
-    } catch {
-      toast.error("Failed to load users");
+    } catch (err) {
+      console.error("Failed to load users:", err);
     } finally {
       setUsersLoading(false);
     }
