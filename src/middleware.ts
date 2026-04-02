@@ -3,33 +3,29 @@ import { isValidAdminToken } from "@/lib/services/admin-auth";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const token = request.cookies.get("admin_token")?.value;
+  const isAuthenticated = token && isValidAdminToken(token);
 
-  // Allow admin login page and login API without auth
+  // Allow access to login page and login API without auth
   if (pathname === "/admin/login" || pathname === "/api/admin/login") {
+    // If already authenticated, redirect to /admin
+    if (pathname === "/admin/login" && isAuthenticated) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
     return NextResponse.next();
   }
 
-  // Protect admin page routes (/admin/*)
+  // Protect all /admin/* routes (except /admin/login which is handled above)
   if (pathname.startsWith("/admin")) {
-    const token = request.cookies.get("admin_token")?.value;
-
-    if (!token || !isValidAdminToken(token)) {
-      const response = pathname.startsWith("/admin/")
-        ? NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-        : NextResponse.redirect(new URL("/admin/login", request.url));
-
-      if (!pathname.startsWith("/admin/")) {
-        response.cookies.delete("admin_token");
-      }
-      return response;
+    if (!isAuthenticated) {
+      // Redirect to login page
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }
 
-  // Protect admin API routes (/api/admin/*) - except login
+  // Protect all /api/admin/* routes
   if (pathname.startsWith("/api/admin")) {
-    const token = request.cookies.get("admin_token")?.value;
-
-    if (!token || !isValidAdminToken(token)) {
+    if (!isAuthenticated) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
