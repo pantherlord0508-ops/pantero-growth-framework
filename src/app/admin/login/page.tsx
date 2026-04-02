@@ -49,12 +49,14 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (data.success) {
-        router.push("/admin");
+        // Direct redirect without waiting - bypass loading state
+        window.location.href = "/admin";
       } else {
-        toast.error(data.error?.message || "Invalid credentials");
+        toast.error(data.error || "Invalid credentials");
         setLoading(false);
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("Network error. Please try again.");
       setLoading(false);
     }
