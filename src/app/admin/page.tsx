@@ -57,42 +57,9 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Check auth on mount - redirect if not authenticated
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  async function checkAuth() {
-    try {
-      const res = await fetch("/api/admin/login", { method: "GET", credentials: "include" });
-      if (!res.ok) {
-        router.replace("/admin/login");
-        return;
-      }
-      const data = await res.json();
-      if (!data.authenticated) {
-        router.replace("/admin/login");
-        return;
-      }
-    } catch {
-      router.replace("/admin/login");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  // Let the page load - middleware handles auth protection
+  // If not authenticated, middleware will redirect to /admin/login
 
   // Users state
   const [users, setUsers] = useState<WaitlistUser[]>([]);
