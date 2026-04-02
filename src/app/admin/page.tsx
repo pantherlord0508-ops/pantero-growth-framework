@@ -59,24 +59,6 @@ export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  // Client-side auth check
-  useEffect(() => {
-    const isAuth = localStorage.getItem("admin_auth");
-    if (!isAuth) {
-      router.push("/admin/login");
-    } else {
-      setIsReady(true);
-    }
-  }, [router]);
-
-  if (!isReady) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <Loader2 className="h-8 w-8 animate-spin text-[#c9a54e]" />
-      </div>
-    );
-  }
-
   // Users state
   const [users, setUsers] = useState<WaitlistUser[]>([]);
   const [userTotal, setUserTotal] = useState(0);
@@ -109,6 +91,26 @@ export default function AdminPage() {
     total: number;
   } | null>(null);
 
+  // Client-side auth check - MUST come after all useState calls
+  useEffect(() => {
+    const isAuth = localStorage.getItem("admin_auth");
+    if (!isAuth) {
+      router.push("/admin/login");
+    } else {
+      setIsReady(true);
+    }
+  }, [router]);
+
+  // Show loading before auth check
+  if (!isReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Loader2 className="h-8 w-8 animate-spin text-[#c9a54e]" />
+      </div>
+    );
+  }
+
+  // Data fetching effects - come after all useState and after auth check
   useEffect(() => {
     fetchUsers();
     fetchSettings();
