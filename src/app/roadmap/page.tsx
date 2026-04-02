@@ -1,8 +1,13 @@
+import dynamic from "next/dynamic";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
 import RoadmapSection from "@/components/RoadmapSection";
-import { CTASection } from "@/components/sections/CTASection";
+
+const CTASection = dynamic(() => import("@/components/sections/CTASection").then((mod) => mod.CTASection), {
+  ssr: false,
+  loading: () => <div className="py-24 md:py-32" />,
+});
 
 export default function RoadmapPage() {
   return (
