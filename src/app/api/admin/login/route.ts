@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminLoginSchema } from "@/lib/schemas";
-import { generateAdminToken, validateAdminCredentials } from "@/lib/services/admin-auth";
+import { generateAdminToken, validateAdminCredentials, isValidAdminToken } from "@/lib/services/admin-auth";
 import { apiError, handleZodError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 
 const log = logger.child({ module: "api/admin/login" });
+
+export async function GET(request: NextRequest) {
+  // Check if user is already authenticated
+  const token = request.cookies.get("admin_token")?.value;
+  if (token && isValidAdminToken(token)) {
+    return NextResponse.json({ success: true, authenticated: true });
+  }
+  return NextResponse.json({ success: false, authenticated: false }, { status: 401 });
+}
 
 export async function POST(request: NextRequest) {
   try {

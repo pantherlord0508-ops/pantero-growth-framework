@@ -57,6 +57,39 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authCheckDone, setAuthCheckDone] = useState(false);
+
+  useEffect(() => {
+    // Check if authenticated
+    fetch("/api/admin/login", { method: "GET" })
+      .then((res) => {
+        if (res.ok) {
+          setIsAuthenticated(true);
+        } else {
+          router.push("/admin/login");
+        }
+      })
+      .catch(() => {
+        router.push("/admin/login");
+      })
+      .finally(() => setAuthCheckDone(true));
+  }, [router]);
+
+  if (!authCheckDone) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // Users state
   const [users, setUsers] = useState<WaitlistUser[]>([]);
