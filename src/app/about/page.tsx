@@ -1,15 +1,11 @@
-import dynamic from "next/dynamic";
+"use client";
+
 import { motion } from "framer-motion";
 import { Globe, Shield, Users, Zap, Target, Heart } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
-
-const CTASection = dynamic(() => import("@/components/sections/CTASection").then((mod) => mod.CTASection), {
-  ssr: false,
-  loading: () => <div className="py-24 md:py-32" />,
-});
 
 const values = [
   {

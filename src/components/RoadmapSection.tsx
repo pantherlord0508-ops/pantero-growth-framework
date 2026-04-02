@@ -1,3 +1,5 @@
+"use client";
+
 import AnimatedSection from "./AnimatedSection";
 import { CheckCircle2, Users, FlaskConical, TestTubes, Rocket, Sparkles } from "lucide-react";
 
