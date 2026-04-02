@@ -82,6 +82,24 @@ export async function emailExists(email: string): Promise<boolean> {
 }
 
 /**
+ * Gets the next available position using MAX(position) + 1.
+ * More reliable than count-based approach for concurrent signups.
+ *
+ * @returns Next available position number
+ */
+export async function getNextPosition(): Promise<number> {
+  const { data } = await supabaseAdmin
+    .from("waitlist_users")
+    .select("position")
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return (data?.position ?? 0) + 1;
+}
+
+/**
+ * @deprecated Use getNextPosition() instead for better concurrency handling.
  * Gets the current total user count for position calculation.
  *
  * @returns Total number of users in the waitlist
@@ -145,7 +163,8 @@ export async function createWaitlistUser(
 }
 
 /**
- * Records a referral relationship and increments the referrer's count.
+ * Records a referral relationship and atomically increments the referrer's count.
+ * Uses SQL-level increment to avoid read-modify-write race conditions.
  *
  * @param referrerId - The referrer's user ID
  * @param refereeId - The new user's ID
@@ -154,46 +173,82 @@ export async function recordReferral(
   referrerId: string,
   refereeId: string
 ): Promise<void> {
-  await supabaseAdmin.from("referrals").insert({
+  // Insert referral record
+  const { error: insertError } = await supabaseAdmin.from("referrals").insert({
     referrer_id: referrerId,
     referee_id: refereeId,
   });
 
-  const { data: referrer } = await supabaseAdmin
-    .from("waitlist_users")
-    .select("referral_count")
-    .eq("id", referrerId)
-    .single();
+  if (insertError) {
+    // Ignore unique constraint violations (duplicate referral)
+    if (insertError.code !== "23505") {
+      log.error({ err: insertError, referrerId, refereeId }, "Failed to record referral");
+      throw insertError;
+    }
+    log.warn({ referrerId, refereeId }, "Duplicate referral ignored");
+    return;
+  }
 
-  if (referrer) {
-    await supabaseAdmin
+  // Atomically increment referral count using RPC to avoid race conditions
+  const { error: rpcError } = await supabaseAdmin.rpc("increment_referral_count", {
+    user_id: referrerId,
+  });
+
+  if (rpcError) {
+    // Fallback: manual increment if RPC doesn't exist
+    log.warn({ err: rpcError }, "RPC increment_referral_count not available, using manual increment");
+    const { data: referrer } = await supabaseAdmin
       .from("waitlist_users")
-      .update({ referral_count: referrer.referral_count + 1 })
-      .eq("id", referrerId);
+      .select("referral_count")
+      .eq("id", referrerId)
+      .single();
+
+    if (referrer) {
+      await supabaseAdmin
+        .from("waitlist_users")
+        .update({ referral_count: referrer.referral_count + 1 })
+        .eq("id", referrerId);
+    }
   }
 }
 
 /**
  * Recalculates all user positions based on referral count and join date.
- * Higher referral count = better position. Earlier join date breaks ties.
+ * Uses the database function for efficient batch update.
+ * Falls back to application-level batch update if the DB function is unavailable.
  */
 export async function recalculatePositions(): Promise<void> {
+  // Try the database function first (single SQL statement, atomic)
+  const { error: rpcError } = await supabaseAdmin.rpc("recalculate_positions");
+
+  if (!rpcError) {
+    return;
+  }
+
+  // Fallback: application-level batch update
+  log.warn({ err: rpcError }, "DB recalculate_positions not available, using fallback");
+
   const { data: users } = await supabaseAdmin
     .from("waitlist_users")
-    .select("id, referral_count")
+    .select("id")
     .order("referral_count", { ascending: false })
     .order("joined_at", { ascending: true });
 
-  if (!users) return;
+  if (!users || users.length === 0) return;
 
-  const updates = users.map((user, index) =>
-    supabaseAdmin
-      .from("waitlist_users")
-      .update({ position: index + 1 })
-      .eq("id", user.id)
-  );
-
-  await Promise.all(updates);
+  // Batch update using individual queries but with proper ordering
+  // Process in chunks to avoid overwhelming the database
+  const CHUNK_SIZE = 50;
+  for (let i = 0; i < users.length; i += CHUNK_SIZE) {
+    const chunk = users.slice(i, i + CHUNK_SIZE);
+    const updates = chunk.map((user, chunkIndex) =>
+      supabaseAdmin
+        .from("waitlist_users")
+        .update({ position: i + chunkIndex + 1 })
+        .eq("id", user.id)
+    );
+    await Promise.all(updates);
+  }
 }
 
 /**

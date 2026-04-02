@@ -4,7 +4,7 @@ import {
   emailExists,
   generateUniqueReferralCode,
   findReferrerByCode,
-  getUserCount,
+  getNextPosition,
   createWaitlistUser,
   recordReferral,
   recalculatePositions,
@@ -15,8 +15,58 @@ import { logger } from "@/lib/logger";
 
 const log = logger.child({ module: "api/signup" });
 
+// Simple in-memory rate limiter for signup endpoint
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX_REQUESTS = 5; // Max 5 signups per IP per window
+
+function getRateLimitKey(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+
+  entry.count++;
+  return false;
+}
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetAt) {
+      rateLimitMap.delete(key);
+    }
+  }
+}, RATE_LIMIT_WINDOW_MS);
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimitKey = getRateLimitKey(request);
+    if (isRateLimited(rateLimitKey)) {
+      return apiError(
+        "RATE_LIMITED",
+        "Too many signup attempts. Please try again later.",
+        429
+      );
+    }
+
     const body = await request.json();
     const parsed = signupSchema.safeParse(body);
 
@@ -31,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     const uniqueCode = await generateUniqueReferralCode();
-    const position = (await getUserCount()) + 1;
+    const position = await getNextPosition();
 
     let referredBy: string | null = null;
     if (referral_code) {

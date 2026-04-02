@@ -1,62 +1,54 @@
 import AnimatedSection from "./AnimatedSection";
-import { Layers, Rocket, Globe, Sparkles, Calendar, Users, Star, Flag } from "lucide-react";
+import { CheckCircle2, Users, FlaskConical, TestTubes, Rocket, Sparkles } from "lucide-react";
 
 const milestones = [
   {
-    icon: Calendar,
-    date: "Now",
-    title: "Early Access Waitlist",
-    description: "Sign up and be among the first to experience Pantero. Your input shapes what we build.",
+    icon: CheckCircle2,
+    date: "Dec 2025",
+    title: "Waitlist Creation",
+    description: "The Pantero waitlist went live, inviting early believers to join the movement and secure their spot.",
     active: true,
+    completed: true,
   },
   {
-    icon: Users,
-    date: "Q2 2026",
+    icon: CheckCircle2,
+    date: "Apr 1, 2026",
     title: "Community Formation",
-    description: "The first members join, connect, and begin contributing ideas. Regional voices start shaping the platform.",
-    active: false,
+    description: "Our WhatsApp community launched, connecting early members to share ideas and shape the platform together.",
+    active: true,
+    completed: true,
   },
   {
-    icon: Star,
-    date: "Q3 2026",
-    title: "Foundation — Core Identity & AI",
-    description: "Decentralized identity system goes live. AI companion launches in English, Yoruba, Swahili, and Hausa.",
+    icon: FlaskConical,
+    date: "Jun 2026",
+    title: "Alpha Testing",
+    description: "Closed alpha release for top waitlist members. Core identity and AI features tested with real users.",
     active: false,
+    completed: false,
   },
   {
-    icon: Flag,
-    date: "Q4 2026",
-    title: "Job Marketplace & Skills Platform",
-    description: "The job marketplace opens alongside structured skill paths and verifiable credential assessments.",
+    icon: TestTubes,
+    date: "Aug 2026",
+    title: "Beta Testing",
+    description: "Open beta with expanded feature set. Jobs marketplace, skills platform, and multi-language AI companion.",
     active: false,
-  },
-  {
-    icon: Layers,
-    date: "2027",
-    title: "Scale — 10+ Languages & Voice AI",
-    description: "Expanding to Igbo, Zulu, Amharic, and more. Voice interface launches for call-in AI assistance.",
-    active: false,
-  },
-  {
-    icon: Globe,
-    date: "2027-2028",
-    title: "Ecosystem — Education & Cross-Border",
-    description: "University partnerships, mobile native apps, regional data centers, and API marketplace for third parties.",
-    active: false,
-  },
-  {
-    icon: Sparkles,
-    date: "2028+",
-    title: "Continental Vision",
-    description: "Unified digital identity across African nations. Healthcare, agriculture, and land registry integrations.",
-    active: false,
+    completed: false,
   },
   {
     icon: Rocket,
-    date: "2030",
-    title: "100 Million Africans Empowered",
-    description: "Full community governance. 50+ languages. Data sovereignty. Africa's digital future, owned by Africans.",
+    date: "Oct 2026",
+    title: "Final Launch",
+    description: "Pantero goes live for everyone. Full platform with digital identity, AI companion, and job marketplace.",
     active: false,
+    completed: false,
+  },
+  {
+    icon: Sparkles,
+    date: "Nov 2026",
+    title: "Ecosystem Expansion",
+    description: "University partnerships, 10+ African languages, regional data centers, and API marketplace for third parties.",
+    active: false,
+    completed: false,
   },
 ];
 
@@ -67,7 +59,7 @@ const RoadmapSection = () => (
         <div className="mx-auto max-w-2xl text-center">
           <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-primary">Roadmap</p>
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-            Where We're{" "}
+            Where We&apos;re{" "}
             <span className="text-gradient-gold">Headed.</span>
           </h2>
         </div>
@@ -78,21 +70,30 @@ const RoadmapSection = () => (
           <AnimatedSection key={m.title} delay={0.1 + i * 0.1}>
             <div className="relative flex gap-6 pb-12 last:pb-0">
               {i < milestones.length - 1 && (
-                <div className="absolute left-[19px] top-11 bottom-0 w-px bg-border" />
+                <div className={`absolute left-[19px] top-11 bottom-0 w-px ${m.completed ? "bg-primary/40" : "bg-border"}`} />
               )}
               <div
                 className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${
-                  m.active
+                  m.completed
+                    ? "border-primary bg-primary/20"
+                    : m.active
                     ? "border-primary bg-primary/20"
                     : "border-border bg-card"
                 }`}
               >
-                <m.icon className={`h-4 w-4 ${m.active ? "text-primary" : "text-muted-foreground"}`} />
+                <m.icon className={`h-4 w-4 ${m.completed ? "text-primary" : m.active ? "text-primary" : "text-muted-foreground"}`} />
               </div>
               <div className="pt-1">
-                <span className={`text-xs font-semibold uppercase tracking-widest ${m.active ? "text-primary" : "text-muted-foreground"}`}>
-                  {m.date}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-semibold uppercase tracking-widest ${m.completed ? "text-primary" : "text-muted-foreground"}`}>
+                    {m.date}
+                  </span>
+                  {m.completed && (
+                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                      Done
+                    </span>
+                  )}
+                </div>
                 <h3 className="mt-1 font-display text-lg font-semibold text-foreground">{m.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{m.description}</p>
               </div>

@@ -10,6 +10,16 @@
 import { z } from "zod";
 
 /**
+ * Strips HTML tags and dangerous characters from a string.
+ */
+function sanitizeString(val: string): string {
+  return val
+    .replace(/<[^>]*>/g, "")
+    .replace(/[<>]/g, "")
+    .trim();
+}
+
+/**
  * Schema for POST /api/signup request body.
  */
 export const signupSchema = z.object({
@@ -17,7 +27,8 @@ export const signupSchema = z.object({
     .string()
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name must be at most 100 characters")
-    .trim(),
+    .transform(sanitizeString)
+    .refine((val) => val.length >= 2, "Name must be at least 2 characters after sanitization"),
   email: z
     .string()
     .email("Invalid email address")
@@ -28,18 +39,22 @@ export const signupSchema = z.object({
     .string()
     .min(7, "WhatsApp number must be at least 7 characters")
     .max(20, "WhatsApp number must be at most 20 characters")
+    .regex(/^[+\d\s-]+$/, "WhatsApp number contains invalid characters")
     .trim(),
   how_heard: z
     .string()
     .max(200, "How heard must be at most 200 characters")
+    .transform(sanitizeString)
     .optional(),
   company_role: z
     .string()
     .max(200, "Company/role must be at most 200 characters")
+    .transform(sanitizeString)
     .optional(),
   referral_code: z
     .string()
     .max(20, "Referral code must be at most 20 characters")
+    .regex(/^[A-Za-z0-9]*$/, "Referral code contains invalid characters")
     .optional(),
 });
 
@@ -61,7 +76,8 @@ export const adminLoginSchema = z.object({
   username: z
     .string()
     .min(1, "Username is required")
-    .max(100, "Username must be at most 100 characters"),
+    .max(100, "Username must be at most 100 characters")
+    .transform(sanitizeString),
   password: z
     .string()
     .min(1, "Password is required")
@@ -94,10 +110,11 @@ export const createMilestoneSchema = z.object({
     .string()
     .min(1, "Name is required")
     .max(100, "Name must be at most 100 characters")
-    .trim(),
+    .transform(sanitizeString),
   description: z
     .string()
     .max(500, "Description must be at most 500 characters")
+    .transform(sanitizeString)
     .optional()
     .nullable(),
   target_count: z
@@ -117,11 +134,12 @@ export const updateMilestoneSchema = z.object({
     .string()
     .min(1, "Name is required")
     .max(100, "Name must be at most 100 characters")
-    .trim()
+    .transform(sanitizeString)
     .optional(),
   description: z
     .string()
     .max(500, "Description must be at most 500 characters")
+    .transform(sanitizeString)
     .optional()
     .nullable(),
   target_count: z
@@ -152,7 +170,8 @@ export const bulkEmailSchema = z.object({
   subject: z
     .string()
     .min(1, "Subject is required")
-    .max(200, "Subject must be at most 200 characters"),
+    .max(200, "Subject must be at most 200 characters")
+    .transform(sanitizeString),
   body: z
     .string()
     .min(1, "Body is required")

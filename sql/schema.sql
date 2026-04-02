@@ -164,6 +164,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Atomically increment referral count for a user
+CREATE OR REPLACE FUNCTION increment_referral_count(user_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE waitlist_users
+  SET referral_count = referral_count + 1
+  WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$

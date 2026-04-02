@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Users } from "lucide-react";
+import { Trophy, Users } from "lucide-react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
@@ -14,32 +14,12 @@ interface TopReferrer {
   referral_code: string;
 }
 
-function anonymizeName(name: string): string {
-  const parts = name.split(" ");
-  if (parts.length === 1) return `${parts[0][0]}***`;
-  return `${parts[0]} ${parts[parts.length - 1][0]}***`;
-}
-
-function getMedalColor(rank: number): string {
-  if (rank === 1) return "text-yellow-400";
-  if (rank === 2) return "text-gray-300";
-  if (rank === 3) return "text-amber-600";
-  return "text-muted-foreground";
-}
-
-function getMedalBg(rank: number): string {
-  if (rank === 1) return "bg-yellow-400/15 border-yellow-400/30";
-  if (rank === 2) return "bg-gray-300/15 border-gray-300/30";
-  if (rank === 3) return "bg-amber-600/15 border-amber-600/30";
-  return "bg-secondary border-border";
-}
-
 export default function LeaderboardPage() {
   const [referrers, setReferrers] = useState<TopReferrer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/stats")
+    fetch("/api/top-referrers")
       .then((res) => res.json())
       .then((data) => {
         if (data.top_referrers) {
@@ -69,7 +49,7 @@ export default function LeaderboardPage() {
                 <span className="text-gradient-gold">Leaderboard</span>
               </h1>
               <p className="mt-3 text-muted-foreground">
-                Top referrers on the Pantero waitlist. Share your link to climb the ranks.
+                See who is leading in referrals.
               </p>
             </motion.div>
 
@@ -95,50 +75,22 @@ export default function LeaderboardPage() {
               </motion.div>
             ) : (
               <div className="space-y-3">
-                {referrers.map((r, i) => {
-                  const rank = i + 1;
-                  return (
-                    <motion.div
-                      key={r.referral_code}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.06, duration: 0.4 }}
-                      className={`flex items-center gap-4 rounded-xl border p-4 transition-all ${
-                        rank <= 3
-                          ? `${getMedalBg(rank)} shadow-gold`
-                          : "border-border bg-card"
-                      }`}
-                    >
-                      <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold ${getMedalBg(rank)} ${getMedalColor(rank)}`}
-                      >
-                        {rank <= 3 ? (
-                          <Medal className={`h-5 w-5 ${getMedalColor(rank)}`} />
-                        ) : (
-                          `#${rank}`
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <p className="font-display text-sm font-semibold text-foreground truncate">
-                          {anonymizeName(r.full_name)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Code: {r.referral_code}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="font-display text-lg font-bold text-foreground">
-                          {r.referral_count}
-                        </p>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                          referrals
-                        </p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                {referrers.map((r, i) => (
+                  <motion.div
+                    key={`${r.full_name}-${i}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.4 }}
+                    className="flex items-center justify-between rounded-xl border border-border bg-card p-4"
+                  >
+                    <p className="font-display text-sm font-semibold text-foreground truncate">
+                      {r.full_name}
+                    </p>
+                    <p className="font-display text-lg font-bold text-foreground">
+                      {r.referral_count}
+                    </p>
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
