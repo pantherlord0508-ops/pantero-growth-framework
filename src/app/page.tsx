@@ -16,6 +16,7 @@ import { RecentSignupsTicker } from "@/components/sections/RecentSignupsTicker";
 import { SignupSection } from "@/components/sections/SignupSection";
 import { FeaturesGrid } from "@/components/sections/FeaturesGrid";
 import { CTASection } from "@/components/sections/CTASection";
+import RoadmapSection from "@/components/RoadmapSection";
 
 interface RecentSignup {
   name: string;
@@ -43,6 +44,7 @@ export default function HomePage() {
       <RecentSignupsTicker signups={recentSignups} />
       <SignupSection />
       <FeaturesGrid />
+      <RoadmapSection />
       <CTASection />
       <Footer />
       <WhatsAppButton />

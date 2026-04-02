@@ -37,6 +37,13 @@
   "exclude": [
     "node_modules",
     "scripts",
-    "e2e"
+    "e2e",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "test"
   ]
 }

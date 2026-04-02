@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users, BarChart3, Target, Settings, Mail, Download, Search, ChevronLeft, ChevronRight, LogOut,
-  Loader2, Plus, Save, Send, Menu, X
+  Loader2, Plus, Save, Send, Menu, X, Upload
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -82,6 +82,14 @@ export default function AdminPage() {
   const [emailForm, setEmailForm] = useState({ subject: "", body: "" });
   const [emailSending, setEmailSending] = useState(false);
 
+  // Import state
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    imported: number;
+    skipped: number;
+    total: number;
+  } | null>(null);
+
   useEffect(() => {
     fetchUsers();
     fetchSettings();
@@ -158,6 +166,43 @@ export default function AdminPage() {
 
   function handleExport() {
     window.open("/api/admin/export", "_blank");
+  }
+
+  async function handleImportCsv(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setImportResult({
+          imported: data.imported,
+          skipped: data.skipped,
+          total: data.total,
+        });
+        toast.success(`Imported ${data.imported} users, skipped ${data.skipped}`);
+        fetchUsers();
+      } else {
+        toast.error(data.error || "Import failed");
+      }
+    } catch {
+      toast.error("Network error during import");
+    } finally {
+      setImporting(false);
+      // Reset file input
+      event.target.value = "";
+    }
   }
 
   async function handleCreateMilestone() {
@@ -321,6 +366,25 @@ export default function AdminPage() {
                     <Download className="mr-2 h-4 w-4" />
                     CSV
                   </Button>
+                  <label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleImportCsv}
+                      className="hidden"
+                      disabled={importing}
+                    />
+                    <Button variant="outline" asChild disabled={importing}>
+                      <span>
+                        {importing ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="mr-2 h-4 w-4" />
+                        )}
+                        Import
+                      </span>
+                    </Button>
+                  </label>
                 </div>
               </div>
 
@@ -391,6 +455,17 @@ export default function AdminPage() {
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
+                </div>
+              )}
+
+              {/* Import Result */}
+              {importResult && (
+                <div className="mt-4 rounded-lg border border-border bg-card p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Last import: <span className="font-semibold text-foreground">{importResult.imported}</span> imported,{" "}
+                    <span className="font-semibold text-foreground">{importResult.skipped}</span> skipped (duplicates),{" "}
+                    <span className="font-semibold text-foreground">{importResult.total}</span> total rows
+                  </p>
                 </div>
               )}
             </motion.div>

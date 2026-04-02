@@ -80,7 +80,8 @@ export function apiSuccess<T = unknown>(
  * @returns NextResponse with validation error details
  */
 export function handleZodError(error: ZodError): NextResponse<ApiErrorResponse> {
-  const details = error.errors.map((e) => ({
+  const issues = error.issues || [];
+  const details = issues.map((e: any) => ({
     field: e.path.join("."),
     message: e.message,
   }));

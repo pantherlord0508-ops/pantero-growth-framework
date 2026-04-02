@@ -4,7 +4,11 @@ const footerLinks = [
   { label: "Privacy", href: "/privacy" },
   { label: "Terms", href: "/terms" },
   { label: "Status", href: "/status" },
+  { label: "Roadmap", href: "/roadmap" },
   { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Milestones", href: "/milestones" },
+  { label: "FAQ", href: "/faq" },
+  { label: "About", href: "/about" },
 ];
 
 const socialLinks = [

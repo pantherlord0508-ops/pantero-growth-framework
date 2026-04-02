@@ -12,7 +12,7 @@ import {
   updateMilestoneSchema,
   updateSettingsSchema,
   bulkEmailSchema,
-} from "./schemas";
+} from "./index";
 
 describe("signupSchema", () => {
   const validInput = {
