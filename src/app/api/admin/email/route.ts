@@ -8,10 +8,17 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 const resendApiKey = process.env.RESEND_API_KEY;
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(request: NextRequest) {
   try {
+    if (!resendApiKey) {
+      return NextResponse.json({
+        success: false,
+        error: "RESEND_API_KEY environment variable is not set"
+      }, { status: 500 });
+    }
+
+    const resend = new Resend(resendApiKey);
     const body = await request.json();
     const { subject, body: emailBody, filter } = body;
 
@@ -22,7 +29,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Fetch users
     let query = supabaseAdmin
       .from("waitlist_users")
       .select("email, full_name");
@@ -39,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({
         success: false,
-        error: error.message
+        error: `Database error: ${error.message}`
       }, { status: 500 });
     }
 
@@ -51,41 +57,48 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check if Resend is configured
-    if (!resend || !resendApiKey) {
-      return NextResponse.json({
-        success: false,
-        error: "Email service not configured. Check RESEND_API_KEY."
-      }, { status: 500 });
-    }
+    const sentResults = [];
+    const failedResults = [];
+    const BATCH_SIZE = 25;
 
-    // Send emails
-    let sent = 0;
-    let failed = 0;
-    const errors: string[] = [];
+    for (let i = 0; i < users.length; i += BATCH_SIZE) {
+      const batch = users.slice(i, i + BATCH_SIZE);
+      
+      const promises = batch.map(async (user) => {
+        try {
+          const result = await resend.emails.send({
+            from: "Pantero <onboarding@resend.dev>",
+            to: user.email,
+            subject: subject,
+            html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,
+          });
+          
+          if (result.error) {
+            return { success: false, email: user.email, error: result.error.message };
+          }
+          return { success: true, email: user.email };
+        } catch (err) {
+          return { success: false, email: user.email, error: err instanceof Error ? err.message : "Unknown error" };
+        }
+      });
 
-    // Send to all users
-    for (const user of users) {
-      try {
-        await resend.emails.send({
-          from: "Pantero <onboarding@resend.dev>",
-          to: user.email,
-          subject: subject,
-          html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,
-        });
-        sent++;
-      } catch (err) {
-        failed++;
-        errors.push(`${user.email}: ${err instanceof Error ? err.message : 'Failed'}`);
+      const results = await Promise.all(promises);
+      
+      for (const result of results) {
+        if (result.success) {
+          sentResults.push(result.email);
+        } else {
+          failedResults.push(`${result.email}: ${result.error}`);
+        }
       }
     }
 
     return NextResponse.json({
       success: true,
-      sent_count: sent,
-      failed_count: failed,
+      sent_count: sentResults.length,
+      failed_count: failedResults.length,
       total_recipients: users.length,
-      errors: errors.length > 0 ? errors : undefined
+      errors: failedResults.length > 0 ? failedResults : undefined
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
