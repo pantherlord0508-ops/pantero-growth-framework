@@ -1,22 +1,22 @@
-import { NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { referralQuerySchema } from "@/lib/schemas";
-import { apiError, apiSuccess, handleZodError } from "@/lib/api-response";
-import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const log = logger.child({ module: "api/referral" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 export async function GET(request: NextRequest) {
-  const rawCode = request.nextUrl.searchParams.get("code");
-
-  const parsed = referralQuerySchema.safeParse({ code: rawCode });
-  if (!parsed.success) {
-    return handleZodError(parsed.error);
-  }
-
-  const { code } = parsed.data;
-
   try {
+    const code = request.nextUrl.searchParams.get("code");
+
+    if (!code) {
+      return NextResponse.json({
+        success: false,
+        error: "Referral code is required"
+      }, { status: 400 });
+    }
+
     const { data: user } = await supabaseAdmin
       .from("waitlist_users")
       .select("full_name, referral_count, position")
@@ -24,10 +24,13 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (!user) {
-      return apiError("NOT_FOUND", "Referral code not found", 404);
+      return NextResponse.json({
+        success: false,
+        error: "Referral code not found"
+      }, { status: 404 });
     }
 
-    return apiSuccess({
+    return NextResponse.json({
       success: true,
       user: {
         full_name: user.full_name,
@@ -36,7 +39,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
-    log.error({ err, code }, "Referral lookup error");
-    return apiError("INTERNAL_ERROR", "Internal server error", 500);
+    return NextResponse.json({
+      success: false,
+      error: err instanceof Error ? err.message : "Unknown error"
+    }, { status: 500 });
   }
 }

@@ -1,13 +1,13 @@
-import { supabaseAdmin } from "@/lib/supabase";
-import { createLogger } from "@/lib/logger";
-import { apiSuccess, withErrorHandling } from "@/lib/api-response";
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const log = createLogger({ route: "api/top-referrers" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
-  return withErrorHandling(async () => {
-    log.info("Top referrers request");
-
+  try {
     const { data: topReferrers, error } = await supabaseAdmin
       .from("waitlist_users")
       .select("full_name, email, referral_count, referral_code")
@@ -16,10 +16,20 @@ export async function GET() {
       .limit(10);
 
     if (error) {
-      log.error({ err: error }, "Failed to fetch top referrers");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
-    return apiSuccess({ top_referrers: topReferrers || [] });
-  });
+    return NextResponse.json({
+      success: true,
+      top_referrers: topReferrers || []
+    });
+  } catch (err) {
+    return NextResponse.json({
+      success: false,
+      error: err instanceof Error ? err.message : "Unknown error"
+    }, { status: 500 });
+  }
 }
