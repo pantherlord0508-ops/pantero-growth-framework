@@ -83,6 +83,11 @@ export default function AdminPage() {
   const [emailForm, setEmailForm] = useState({ subject: "", body: "" });
   const [emailSending, setEmailSending] = useState(false);
   const [emailAttachments, setEmailAttachments] = useState<File[]>([]);
+  const [emailQueueStatus, setEmailQueueStatus] = useState<{
+    sent_today: number;
+    remaining_today: number;
+    pending_queue: number;
+  } | null>(null);
 
   // Import state
   const [importing, setImporting] = useState(false);
@@ -108,6 +113,7 @@ export default function AdminPage() {
     fetchUsers();
     fetchSettings();
     fetchMilestones();
+    fetchEmailQueueStatus();
   }, [userPage, userSearch, isReady]);
 
   // Show loading before auth check
@@ -224,6 +230,22 @@ export default function AdminPage() {
     }
   }
 
+  async function fetchEmailQueueStatus() {
+    try {
+      const res = await fetch("/api/admin/email");
+      const data = await res.json();
+      if (data.success) {
+        setEmailQueueStatus({
+          sent_today: data.sent_today,
+          remaining_today: data.remaining_today,
+          pending_queue: data.pending_queue
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load email queue status:", err);
+    }
+  }
+
   function handleExport() {
     window.open("/api/admin/export", "_blank");
   }
@@ -328,9 +350,13 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(`Email sent to ${data.sent_count} users`);
+        const msg = data.queued > 0 
+          ? `Sent ${data.sent_now} now, ${data.queued} queued for tomorrow`
+          : `Email sent to ${data.sent_now} users`;
+        toast.success(msg);
         setEmailForm({ subject: "", body: "" });
         setEmailAttachments([]);
+        fetchEmailQueueStatus();
       } else {
         toast.error(data.error || "Failed to send");
       }
@@ -748,6 +774,26 @@ export default function AdminPage() {
                       </label>
                     </div>
                   </div>
+                  {/* Queue Status */}
+                  {emailQueueStatus && (
+                    <div className="rounded-lg border border-border bg-secondary/50 p-4">
+                      <p className="mb-2 text-sm font-medium text-foreground">Email Queue Status (75/day limit)</p>
+                      <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                        <div>
+                          <p className="font-display text-xl font-bold text-green-400">{emailQueueStatus.sent_today}</p>
+                          <p className="text-xs text-muted-foreground">Sent Today</p>
+                        </div>
+                        <div>
+                          <p className="font-display text-xl font-bold text-primary">{emailQueueStatus.remaining_today}</p>
+                          <p className="text-xs text-muted-foreground">Remaining Today</p>
+                        </div>
+                        <div>
+                          <p className="font-display text-xl font-bold text-yellow-400">{emailQueueStatus.pending_queue}</p>
+                          <p className="text-xs text-muted-foreground">Queued</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <Button onClick={handleSendEmail} disabled={emailSending}>
                     {emailSending ? (
                       <>
