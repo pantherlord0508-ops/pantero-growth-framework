@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminLoginSchema } from "@/lib/schemas";
 import { generateAdminToken, validateAdminCredentials, isValidAdminToken } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
@@ -13,13 +12,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const parsed = adminLoginSchema.safeParse(body);
+    const { username, password } = body;
 
-    if (!parsed.success) {
-      return NextResponse.json({ success: false, error: "Invalid input" }, { status: 400 });
+    if (!username || !password) {
+      return NextResponse.json({ success: false, error: "Missing credentials" }, { status: 400 });
     }
 
-    const { username, password } = parsed.data;
     const isValid = validateAdminCredentials(username, password);
     
     if (!isValid) {
@@ -31,7 +29,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, username });
     response.cookies.set("admin_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24,

@@ -1,36 +1,28 @@
-import { createHmac, randomBytes, timingSafeEqual } from "crypto";
+import { createHmac, randomBytes } from "crypto";
 
-export function getTokenSecret(): string {
-  return process.env.ADMIN_PASSWORD || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-}
+const ADMIN_USER = "TESORO-DEV";
+const ADMIN_PASS = "THINGSIDOFORTREASURE";
+const SECRET_KEY = "pantero-admin-secret-key";
 
 export function generateAdminToken(username: string): string {
-  const data = `${username}:${Date.now()}:${randomBytes(16).toString("hex")}`;
-  const signature = createHmac("sha256", getTokenSecret()).update(data).digest("hex");
+  const data = `${username}:${Date.now()}:${randomBytes(8).toString("hex")}`;
+  const signature = createHmac("sha256", SECRET_KEY).update(data).digest("hex");
   return `${data}.${signature}`;
 }
 
 export function validateAdminCredentials(username: string, password: string): boolean {
-  const adminUsername = process.env.ADMIN_USERNAME;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminUsername || !adminPassword) return false;
-  return username === adminUsername && password === adminPassword;
+  return username === ADMIN_USER && password === ADMIN_PASS;
 }
 
 export function isValidAdminToken(token: string): boolean {
   if (!token) return false;
-  const secret = getTokenSecret();
-  if (!secret) return false;
   
   const lastDot = token.lastIndexOf(".");
   if (lastDot === -1) return false;
   
   const data = token.substring(0, lastDot);
   const signature = token.substring(lastDot + 1);
+  const expected = createHmac("sha256", SECRET_KEY).update(data).digest("hex");
   
-  try {
-    const expected = createHmac("sha256", secret).update(data).digest("hex");
-    if (signature.length !== expected.length) return false;
-    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
-  } catch { return false; }
+  return signature === expected;
 }
