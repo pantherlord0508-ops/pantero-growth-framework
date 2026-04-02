@@ -425,11 +425,10 @@ export async function sendMilestoneEmail(
 }
 
 /**
- * Sends an email to a list of recipients in batches of up to 100 (the Resend
- * batch-sending limit).
+ * Sends an email to a list of recipients in batches with rate limiting.
  *
- * The provided `htmlBody` is automatically wrapped in the full Pantero-branded
- * template before sending.
+ * Uses Resend's batch API with correct array format for `to` field.
+ * Adds a 1-second delay between batches to stay within Resend's rate limits.
  *
  * @param subject - The email subject line.
  * @param htmlBody - The raw HTML content for the email body (before template wrapping).
@@ -437,19 +436,6 @@ export async function sendMilestoneEmail(
  *   address and display name.
  * @returns A summary object with counts of successfully sent emails, failures,
  *   and any error messages.
- *
- * @example
- * ```ts
- * const result = await sendBulkEmail(
- *   "Pantero Update",
- *   "<p>Here is the latest news …</p>",
- *   [
- *     { email: "jane@example.com", name: "Jane" },
- *     { email: "john@example.com", name: "John" },
- *   ]
- * );
- * console.log(`Sent: ${result.sent}, Failed: ${result.failed}`);
- * ```
  */
 export async function sendBulkEmail(
   subject: string,
@@ -461,28 +447,34 @@ export async function sendBulkEmail(
   let failed = 0;
   const errors: string[] = [];
 
-  // Break recipients into batches of 100 (Resend batch limit)
-  const BATCH_SIZE = 100;
+  const BATCH_SIZE = 50;
+  const DELAY_MS = 1000;
+
   for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
     const batch = recipients.slice(i, i + BATCH_SIZE).map((r) => ({
       from: DEFAULT_FROM,
-      to: r.email,
+      to: [r.email],
       subject,
       html: wrappedHtml,
     }));
 
     try {
       const { data, error } = await resend.batch.send(batch);
-      
+
       if (error) {
         failed += batch.length;
-        errors.push(`Batch failed: ${error.message}`);
+        errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
       } else if (data) {
         sent += data.length;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       failed += batch.length;
-      errors.push(`Fatal batch error: ${err.message}`);
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1} fatal: ${msg}`);
+    }
+
+    if (i + BATCH_SIZE < recipients.length) {
+      await new Promise((r) => setTimeout(r, DELAY_MS));
     }
   }
 

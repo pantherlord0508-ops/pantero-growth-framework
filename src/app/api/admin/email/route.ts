@@ -46,13 +46,19 @@ export async function POST(request: NextRequest) {
 
     const { sendBulkEmail } = await import("@/lib/email");
     const recipients = users.map((u) => ({ email: u.email, name: u.full_name }));
-    await sendBulkEmail(subject, emailBody, recipients);
+    const result = await sendBulkEmail(subject, emailBody, recipients);
 
-    log.info({ recipientCount: recipients.length }, "Bulk email sent");
+    log.info({ recipientCount: recipients.length, sent: result.sent, failed: result.failed }, "Bulk email completed");
+
+    if (result.errors.length > 0) {
+      log.warn({ errors: result.errors }, "Bulk email had errors");
+    }
 
     return apiSuccess({
-      success: true,
-      sent_count: recipients.length,
+      success: result.failed === 0,
+      sent_count: result.sent,
+      failed_count: result.failed,
+      errors: result.errors,
     });
   });
 }
