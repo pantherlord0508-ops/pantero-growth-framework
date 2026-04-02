@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Calendar, CalendarDays } from "lucide-react";
+import { Users, Calendar, CalendarDays, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface StatsData {
   total_signups: number;
   signups_today: number;
   signups_this_week: number;
+  success?: boolean;
+  error?: string;
 }
 
 function AnimatedCounter({ value }: { value: number }) {
@@ -54,11 +56,29 @@ const statCards = [
 export default function LiveStats() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/stats")
-      .then((res) => res.json())
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    fetch("/api/stats", { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
+        clearTimeout(timeoutId);
+        
+        // Handle API-level errors
+        if (data.success === false) {
+          setError(data.error || "Failed to load stats");
+          setLoading(false);
+          return;
+        }
+        
         setStats({
           total_signups: data.total_signups ?? 0,
           signups_today: data.signups_today ?? 0,
@@ -66,7 +86,20 @@ export default function LiveStats() {
         });
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        if (err.name === "AbortError") {
+          setError("Request timed out");
+        } else {
+          setError(err.message || "Failed to load stats");
+        }
+        setLoading(false);
+      });
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
   if (loading) {
@@ -83,7 +116,14 @@ export default function LiveStats() {
     );
   }
 
-  if (!stats) return null;
+  if (error || !stats) {
+    return (
+      <div className="rounded-xl border border-red-900/50 bg-red-950/20 p-6 text-center">
+        <AlertCircle className="mx-auto h-8 w-8 text-red-500" />
+        <p className="mt-2 text-red-400">{error || "Failed to load stats"}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-3">

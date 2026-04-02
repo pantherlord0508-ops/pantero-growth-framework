@@ -1,127 +1,93 @@
-import { NextRequest } from "next/server";
-import { signupSchema } from "@/lib/schemas";
-import {
-  emailExists,
-  generateUniqueReferralCode,
-  findReferrerByCode,
-  getNextPosition,
-  createWaitlistUser,
-  recordReferral,
-  recalculatePositions,
-  dispatchWelcomeEmail,
-  CreatedUser,
-} from "@/lib/services/waitlist";
-import { apiError, apiSuccess, handleZodError } from "@/lib/api-response";
-import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { randomBytes } from "crypto";
 
-const log = logger.child({ module: "api/signup" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-// Simple in-memory rate limiter for signup endpoint
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX_REQUESTS = 5; // Max 5 signups per IP per window
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
-function getRateLimitKey(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
+function generateReferralCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }
-
-function isRateLimited(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return true;
-  }
-
-  entry.count++;
-  return false;
-}
-
-// Clean up old entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitMap.entries()) {
-    if (now > entry.resetAt) {
-      rateLimitMap.delete(key);
-    }
-  }
-}, RATE_LIMIT_WINDOW_MS);
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const rateLimitKey = getRateLimitKey(request);
-    if (isRateLimited(rateLimitKey)) {
-      return apiError(
-        "RATE_LIMITED",
-        "Too many signup attempts. Please try again later.",
-        429
-      );
-    }
-
     const body = await request.json();
-    const parsed = signupSchema.safeParse(body);
+    
+    const { full_name, email, whatsapp_number, how_heard, company_role, referral_code } = body;
 
-    if (!parsed.success) {
-      return handleZodError(parsed.error);
+    // Validate required fields
+    if (!full_name || full_name.length < 2) {
+      return NextResponse.json({ success: false, error: "Name is required" }, { status: 400 });
+    }
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ success: false, error: "Valid email is required" }, { status: 400 });
+    }
+    if (!whatsapp_number) {
+      return NextResponse.json({ success: false, error: "WhatsApp number is required" }, { status: 400 });
     }
 
-    const { email, referral_code } = parsed.data;
+    // Check if email exists
+    const { data: existing } = await supabaseAdmin
+      .from("waitlist_users")
+      .select("id")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
 
-    if (await emailExists(email)) {
-      return apiError("DUPLICATE_EMAIL", "Email already registered", 409);
+    if (existing) {
+      return NextResponse.json({ success: false, error: "Email already registered" }, { status: 409 });
     }
 
-    const uniqueCode = await generateUniqueReferralCode();
-    const position = await getNextPosition();
+    // Get next position
+    const { data: lastUser } = await supabaseAdmin
+      .from("waitlist_users")
+      .select("position")
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    let referredBy: string | null = null;
-    if (referral_code) {
-      referredBy = await findReferrerByCode(referral_code);
+    const position = (lastUser?.position || 0) + 1;
+    const referralCode = generateReferralCode();
+
+    // Create user
+    const { data, error } = await supabaseAdmin
+      .from("waitlist_users")
+      .insert({
+        full_name,
+        email: email.toLowerCase(),
+        whatsapp_number,
+        referral_code: referralCode,
+        position,
+        how_heard: how_heard || null,
+        company_role: company_role || null,
+        source: "web",
+      })
+      .select("id, referral_code, position")
+      .single();
+
+    if (error) {
+      return NextResponse.json({
+        success: false,
+        error: error.message || "Failed to create user"
+      }, { status: 500 });
     }
 
-    let newUser: CreatedUser;
-    try {
-      newUser = await createWaitlistUser(parsed.data, position, uniqueCode, referredBy);
-    } catch (createErr) {
-      log.error({ err: createErr }, "Failed to create waitlist user");
-      return apiError("CREATE_FAILED", "Failed to create user. Please try again.", 500);
-    }
-
-    // Record referral and recalculate positions (non-critical, don't fail on error)
-    if (referredBy) {
-      try {
-        await recordReferral(referredBy, newUser.id);
-        await recalculatePositions();
-      } catch (refErr) {
-        log.warn({ err: refErr }, "Failed to record referral or recalculate positions (non-critical)");
-      }
-    }
-
-    // Send welcome email (fire-and-forget, don't block signup)
-    dispatchWelcomeEmail(email, parsed.data.full_name, uniqueCode, newUser.position);
-
-    log.info({ userId: newUser.id, position: newUser.position }, "User signed up");
-
-    return apiSuccess({
+    return NextResponse.json({
       success: true,
       user: {
-        id: newUser.id,
-        referral_code: newUser.referral_code,
-        position: newUser.position,
+        id: data.id,
+        referral_code: data.referral_code,
+        position: data.position,
       },
     });
   } catch (err) {
-    log.error({ err }, "Signup error");
-    return apiError("INTERNAL_ERROR", "Internal server error", 500);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

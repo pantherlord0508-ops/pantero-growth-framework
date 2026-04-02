@@ -1,56 +1,52 @@
-import { NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { adminUsersQuerySchema } from "@/lib/schemas";
-import { apiSuccess, handleZodError, withErrorHandling } from "@/lib/api-response";
-import { createLogger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const log = createLogger({ route: "api/admin/users" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 export async function GET(request: NextRequest) {
-  return withErrorHandling(async () => {
-    const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
-    const parsed = adminUsersQuerySchema.safeParse(searchParams);
-
-    if (!parsed.success) {
-      return handleZodError(parsed.error);
-    }
-
-    const { search, page, limit, sort_by, sort_order } = parsed.data;
-
-    log.info({ page, limit, sort_by, sort_order, search: search || undefined }, "Admin users list request");
+  try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const search = searchParams.get("search") || "";
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
     let query = supabaseAdmin
       .from("waitlist_users")
-      .select("*", { count: "exact" });
+      .select("id, full_name, email, whatsapp_number, referral_code, referral_count, position, joined_at, source", { count: "exact" })
+      .order("joined_at", { ascending: false })
+      .range(from, to);
 
     if (search) {
       query = query.or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
     }
 
-    query = query
-      .order(sort_by, { ascending: sort_order === "asc" })
-      .range(from, to);
-
-    const { data: users, count, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
-      log.error({ err: error }, "Failed to fetch users");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
-    const total = count || 0;
-    const totalPages = Math.ceil(total / limit);
-
-    log.info({ total, page, totalPages }, "Admin users list returned");
-
-    return apiSuccess({
-      users: users || [],
-      total,
+    return NextResponse.json({
+      success: true,
+      users: data || [],
+      total: count || 0,
       page,
-      totalPages,
+      totalPages: Math.ceil((count || 0) / limit),
     });
-  });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }

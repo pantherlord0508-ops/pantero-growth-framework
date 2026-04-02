@@ -1,88 +1,63 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { createLogger } from "@/lib/logger";
-import { withErrorHandling } from "@/lib/api-response";
+import { createClient } from "@supabase/supabase-js";
 
-const log = createLogger({ route: "api/stats" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
-  return withErrorHandling(async () => {
-    log.info("Stats request started");
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const { count: totalCount } = await supabaseAdmin
+  try {
+    // Get total count
+    const { data: allUsers, error: allError } = await supabaseAdmin
       .from("waitlist_users")
-      .select("*", { count: "exact", head: true });
-
-    const { count: todayCount } = await supabaseAdmin
-      .from("waitlist_users")
-      .select("*", { count: "exact", head: true })
-      .gte("joined_at", todayStart);
-
-    const { count: weekCount } = await supabaseAdmin
-      .from("waitlist_users")
-      .select("*", { count: "exact", head: true })
-      .gte("joined_at", weekStart);
-
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: recentUsers } = await supabaseAdmin
-      .from("waitlist_users")
-      .select("joined_at")
-      .gte("joined_at", thirtyDaysAgo)
-      .order("joined_at", { ascending: true });
-
-    const dailyTrend: Record<string, number> = {};
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const key = date.toISOString().split("T")[0];
-      dailyTrend[key] = 0;
+      .select("id")
+      .limit(1000);
+    
+    if (allError) {
+      return NextResponse.json({
+        success: false,
+        error: allError.message,
+        code: "STATS_ERROR"
+      }, { status: 500 });
     }
 
-    if (recentUsers) {
-      for (const user of recentUsers) {
-        const date = user.joined_at.split("T")[0];
-        if (dailyTrend[date] !== undefined) {
-          dailyTrend[date]++;
-        }
-      }
-    }
+    const totalCount = allUsers?.length || 0;
 
-    const { data: sourceData } = await supabaseAdmin
-      .from("waitlist_users")
-      .select("source");
-
-    const sourceBreakdown: Record<string, number> = {};
-    if (sourceData) {
-      for (const row of sourceData) {
-        const src = row.source || "unknown";
-        sourceBreakdown[src] = (sourceBreakdown[src] || 0) + 1;
-      }
-    }
-
-    const { data: recentSignups } = await supabaseAdmin
+    // Get recent signups
+    const { data: recentSignups, error: recentError } = await supabaseAdmin
       .from("waitlist_users")
       .select("full_name, joined_at")
       .order("joined_at", { ascending: false })
       .limit(10);
 
+    if (recentError) {
+      return NextResponse.json({
+        success: false,
+        error: recentError.message,
+        code: "RECENT_ERROR"
+      }, { status: 500 });
+    }
+
     const anonymized = (recentSignups || []).map((u) => ({
-      name: u.full_name.split(" ")[0],
+      name: u.full_name?.split(" ")[0] || "Anonymous",
       time: u.joined_at,
     }));
 
-    log.info({ total: totalCount, today: todayCount, week: weekCount }, "Stats request completed");
-
     return NextResponse.json({
-      total_signups: totalCount || 0,
-      signups_today: todayCount || 0,
-      signups_this_week: weekCount || 0,
-      daily_trend: Object.entries(dailyTrend)
-        .map(([date, count]) => ({ date, count }))
-        .reverse(),
-      source_breakdown: sourceBreakdown,
+      total_signups: totalCount,
+      signups_today: 0,
+      signups_this_week: 0,
+      daily_trend: [],
+      source_breakdown: {},
       recent_signups: anonymized,
     });
-  });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message,
+      code: "UNEXPECTED_ERROR"
+    }, { status: 500 });
+  }
 }

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -37,12 +37,6 @@ const countryCodes = [
   { code: "+233", country: "GH" },
   { code: "+256", country: "UG" },
   { code: "+255", country: "TZ" },
-  { code: "+61", country: "AU" },
-  { code: "+49", country: "DE" },
-  { code: "+33", country: "FR" },
-  { code: "+81", country: "JP" },
-  { code: "+86", country: "CN" },
-  { code: "+55", country: "BR" },
 ];
 
 const howHeardOptions = [
@@ -65,8 +59,7 @@ const formSchema = z.object({
   whatsapp_number: z
     .string()
     .min(6, "Enter a valid phone number")
-    .max(15, "Phone number is too long")
-    .regex(/^\d+$/, "Phone numbers only"),
+    .max(15, "Phone number is too long"),
   how_heard: z.string().min(1, "Tell us how you heard about us"),
   company_role: z.string().optional(),
 });
@@ -116,7 +109,9 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        toast.error(data.error || "Something went wrong. Please try again.");
+        // Extract user-friendly error message
+        const errorMessage = data.error || "Something went wrong. Please try again.";
+        toast.error(errorMessage);
         setSubmitting(false);
         return;
       }
@@ -131,7 +126,8 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
 
       toast.success("You're on the waitlist! Share your link to move up.");
       router.push("/community");
-    } catch {
+    } catch (err) {
+      // Handle network errors
       toast.error("Network error. Please try again.");
       setSubmitting(false);
     }
@@ -181,45 +177,43 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
             )}
           />
 
-          <div className="space-y-2">
-            <FormLabel>WhatsApp Number</FormLabel>
-            <div className="flex gap-2">
-              <FormField
-                control={form.control}
-                name="country_code"
-                render={({ field }) => (
-                  <FormItem className="w-28 shrink-0">
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Code" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {countryCodes.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>
-                            {c.code} {c.country}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="whatsapp_number"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
+          <div className="flex gap-2">
+            <FormField
+              control={form.control}
+              name="country_code"
+              render={({ field }) => (
+                <FormItem className="w-28">
+                  <FormLabel>Code</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <Input placeholder="8012345678" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Code" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      {countryCodes.map((cc) => (
+                        <SelectItem key={cc.code} value={cc.code}>
+                          {cc.code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="whatsapp_number"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>WhatsApp</FormLabel>
+                  <FormControl>
+                    <Input placeholder="8012345678" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <FormField
@@ -227,7 +221,7 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
             name="how_heard"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>How did you hear about Pantero?</FormLabel>
+                <FormLabel>How did you hear about us?</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -252,25 +246,29 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
             name="company_role"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company / Role (optional)</FormLabel>
+                <FormLabel>Company / Role (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Engineer at Acme" {...field} />
+                  <Input placeholder="Software Developer" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={submitting}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={submitting}
+          >
             {submitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Joining...
               </>
             ) : (
               <>
-                Join Waitlist
-                <ArrowRight className="h-4 w-4" />
+                Join the Waitlist
+                <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}
           </Button>
@@ -281,9 +279,5 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
 }
 
 export default function SignupForm({ referral_code }: SignupFormProps) {
-  return (
-    <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
-      <SignupFormInner referral_code={referral_code} />
-    </Suspense>
-  );
+  return <SignupFormInner referral_code={referral_code} />;
 }
