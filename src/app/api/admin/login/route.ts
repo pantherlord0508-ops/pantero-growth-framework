@@ -7,7 +7,6 @@ import { logger } from "@/lib/logger";
 const log = logger.child({ module: "api/admin/login" });
 
 export async function GET(request: NextRequest) {
-  // Check if user is already authenticated
   const token = request.cookies.get("admin_token")?.value;
   if (token && isValidAdminToken(token)) {
     return NextResponse.json({ success: true, authenticated: true });
@@ -30,14 +29,7 @@ export async function POST(request: NextRequest) {
     
     if (!isValid) {
       log.warn({ username }, "Failed admin login attempt");
-      return NextResponse.json({ 
-        success: false, 
-        error: "Invalid credentials",
-        debug: {
-          envUsername: process.env.ADMIN_USERNAME,
-          hasPassword: !!process.env.ADMIN_PASSWORD
-        }
-      }, { status: 401 });
+      return apiError("INVALID_CREDENTIALS", "Invalid credentials", 401);
     }
 
     const token = generateAdminToken(username);
@@ -49,37 +41,6 @@ export async function POST(request: NextRequest) {
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24,
-    });
-
-    log.info({ username }, "Admin login successful");
-    return response;
-  } catch (err) {
-    log.error({ err }, "Admin login error");
-    return NextResponse.json({ 
-      success: false, 
-      error: "Service unavailable",
-      details: err instanceof Error ? err.message : "Unknown error"
-    }, { status: 503 });
-  }
-}
-
-    const { username, password } = parsed.data;
-
-    if (!validateAdminCredentials(username, password)) {
-      log.warn({ username }, "Failed admin login attempt");
-      return apiError("INVALID_CREDENTIALS", "Invalid credentials", 401);
-    }
-
-    const token = generateAdminToken(username);
-
-    const response = NextResponse.json({ success: true });
-    response.cookies.set("admin_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24,
-      // Don't set domain - let it default to current domain
     });
 
     log.info({ username }, "Admin login successful");
