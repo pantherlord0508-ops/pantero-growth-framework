@@ -19,8 +19,24 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = new Resend(resendApiKey);
-    const body = await request.json();
-    const { subject, body: emailBody, filter } = body;
+    const contentType = request.headers.get("content-type") || "";
+
+    let subject: string;
+    let emailBody: string;
+    let attachments: File[] = [];
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      subject = formData.get("subject") as string;
+      emailBody = formData.get("body") as string;
+      
+      const attachmentFiles = formData.getAll("attachments") as File[];
+      attachments = attachmentFiles.filter(f => f.size > 0);
+    } else {
+      const jsonBody = await request.json();
+      subject = jsonBody.subject;
+      emailBody = jsonBody.body;
+    }
 
     if (!subject || !emailBody) {
       return NextResponse.json({
@@ -32,13 +48,6 @@ export async function POST(request: NextRequest) {
     let query = supabaseAdmin
       .from("waitlist_users")
       .select("email, full_name");
-
-    if (filter?.min_referrals) {
-      query = query.gte("referral_count", filter.min_referrals);
-    }
-    if (filter?.max_referrals) {
-      query = query.lte("referral_count", filter.max_referrals);
-    }
 
     const { data: users, error } = await query;
 
@@ -66,12 +75,34 @@ export async function POST(request: NextRequest) {
       
       const promises = batch.map(async (user) => {
         try {
-          const result = await resend.emails.send({
+          const emailData: {
+            from: string;
+            to: string;
+            subject: string;
+            html: string;
+            attachments?: { filename: string; content: string; }[];
+          } = {
             from: "Pantero <onboarding@resend.dev>",
             to: user.email,
             subject: subject,
             html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,
-          });
+          };
+
+          if (attachments.length > 0) {
+            const attachmentData = await Promise.all(
+              attachments.map(async (file) => {
+                const arrayBuffer = await file.arrayBuffer();
+                const base64 = Buffer.from(arrayBuffer).toString("base64");
+                return {
+                  filename: file.name,
+                  content: base64,
+                };
+              })
+            );
+            emailData.attachments = attachmentData;
+          }
+
+          const result = await resend.emails.send(emailData);
           
           if (result.error) {
             return { success: false, email: user.email, error: result.error.message };

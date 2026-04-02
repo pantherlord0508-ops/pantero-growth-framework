@@ -82,6 +82,7 @@ export default function AdminPage() {
   // Email state
   const [emailForm, setEmailForm] = useState({ subject: "", body: "" });
   const [emailSending, setEmailSending] = useState(false);
+  const [emailAttachments, setEmailAttachments] = useState<File[]>([]);
 
   // Import state
   const [importing, setImporting] = useState(false);
@@ -313,15 +314,23 @@ export default function AdminPage() {
     }
     setEmailSending(true);
     try {
+      const formData = new FormData();
+      formData.append("subject", emailForm.subject);
+      formData.append("body", emailForm.body);
+      
+      for (const file of emailAttachments) {
+        formData.append("attachments", file);
+      }
+
       const res = await fetch("/api/admin/email", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(emailForm),
+        body: formData,
       });
       const data = await res.json();
       if (data.success) {
         toast.success(`Email sent to ${data.sent_count} users`);
         setEmailForm({ subject: "", body: "" });
+        setEmailAttachments([]);
       } else {
         toast.error(data.error || "Failed to send");
       }
@@ -330,6 +339,19 @@ export default function AdminPage() {
     } finally {
       setEmailSending(false);
     }
+  }
+
+  function handleAttachmentChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setEmailAttachments([...emailAttachments, ...newFiles]);
+    }
+    event.target.value = "";
+  }
+
+  function removeAttachment(index: number) {
+    setEmailAttachments(emailAttachments.filter((_, i) => i !== index));
   }
 
   function handleLogout() {
@@ -703,6 +725,28 @@ export default function AdminPage() {
                       onChange={(e) => setEmailForm({ ...emailForm, body: e.target.value })}
                       className="min-h-[200px]"
                     />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-muted-foreground">Attachments</label>
+                    <div className="space-y-2">
+                      {emailAttachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between rounded-lg border border-border bg-secondary/50 px-3 py-2">
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <span className="text-sm text-foreground truncate max-w-[200px]">{file.name}</span>
+                            <span className="text-xs text-muted-foreground">({Math.round(file.size / 1024)} KB)</span>
+                          </div>
+                          <button type="button" onClick={() => removeAttachment(index)} className="text-destructive hover:text-destructive/80">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <label>
+                        <input type="file" multiple onChange={handleAttachmentChange} className="hidden" />
+                        <Button type="button" variant="outline" size="sm" asChild>
+                          <span><Upload className="mr-2 h-4 w-4" />Add Attachment</span>
+                        </Button>
+                      </label>
+                    </div>
                   </div>
                   <Button onClick={handleSendEmail} disabled={emailSending}>
                     {emailSending ? (
