@@ -1,15 +1,9 @@
-import dynamic from "next/dynamic";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, ChevronDown } from "lucide-react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
-
-const CTASection = dynamic(() => import("@/components/sections/CTASection").then((mod) => mod.CTASection), {
-  ssr: false,
-  loading: () => <div className="py-24 md:py-32" />,
-});
 
 const faqs = [
   {
@@ -126,7 +120,6 @@ export default function FaqPage() {
             </motion.div>
           </div>
         </div>
-        <CTASection />
       </main>
       <Footer />
       <WhatsAppButton />

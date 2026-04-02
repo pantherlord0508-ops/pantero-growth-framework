@@ -144,7 +144,6 @@ export default function AboutPage() {
             </motion.div>
           </div>
         </div>
-        <CTASection />
       </main>
       <Footer />
       <WhatsAppButton />
