@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { createLogger } from "@/lib/logger";
-import { withErrorHandling } from "@/lib/api-response";
+import { createClient } from "@supabase/supabase-js";
 
-const log = createLogger({ route: "api/admin/export" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 function escapeCsvField(field: unknown): string {
   const str = String(field ?? "");
@@ -17,17 +18,17 @@ function escapeCsvField(field: unknown): string {
 }
 
 export async function GET() {
-  return withErrorHandling(async () => {
-    log.info("CSV export request started");
-
+  try {
     const { data: users, error } = await supabaseAdmin
       .from("waitlist_users")
       .select("position, full_name, email, whatsapp_number, referral_code, referral_count, joined_at, source")
       .order("position", { ascending: true });
 
     if (error) {
-      log.error({ err: error }, "Export query failed");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
     const headers = ["Position", "Name", "Email", "WhatsApp", "Referral Code", "Referrals", "Joined At", "Source"];
@@ -48,13 +49,17 @@ export async function GET() {
       ...rows.map((row) => row.map(escapeCsvField).join(",")),
     ].join("\n");
 
-    log.info({ rowCount: rows.length }, "CSV export completed");
-
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": 'attachment; filename="pantero-waitlist-export.csv"',
       },
     });
-  });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }

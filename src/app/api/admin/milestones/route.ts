@@ -1,75 +1,91 @@
-import { NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { createMilestoneSchema, updateMilestoneSchema } from "@/lib/schemas";
-import { apiSuccess, handleZodError, withErrorHandling } from "@/lib/api-response";
-import { createLogger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const log = createLogger({ route: "api/admin/milestones" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
-  return withErrorHandling(async () => {
-    log.info("Milestones list request");
-
+  try {
     const { data: milestones, error } = await supabaseAdmin
       .from("milestones")
       .select("*")
       .order("target_count", { ascending: true });
 
     if (error) {
-      log.error({ err: error }, "Failed to fetch milestones");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
-    log.info({ count: milestones?.length ?? 0 }, "Milestones list returned");
-    return apiSuccess({ milestones: milestones || [] });
-  });
+    return NextResponse.json({
+      success: true,
+      milestones: milestones || []
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
-  return withErrorHandling(async () => {
+  try {
     const body = await request.json();
-    const parsed = createMilestoneSchema.safeParse(body);
+    const { name, description, target_count } = body;
 
-    if (!parsed.success) {
-      return handleZodError(parsed.error);
+    if (!name || !target_count) {
+      return NextResponse.json({
+        success: false,
+        error: "Name and target_count are required"
+      }, { status: 400 });
     }
-
-    const { name, description, target_count } = parsed.data;
-
-    log.info({ name, target_count }, "Creating milestone");
 
     const { data: milestone, error } = await supabaseAdmin
       .from("milestones")
       .insert({
         name,
-        description: description ?? null,
+        description: description || null,
         target_count,
       })
       .select()
       .single();
 
     if (error) {
-      log.error({ err: error }, "Failed to create milestone");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
-    log.info({ milestoneId: milestone.id }, "Milestone created");
-    return apiSuccess({ success: true, milestone }, 201);
-  });
+    return NextResponse.json({
+      success: true,
+      milestone
+    }, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
-  return withErrorHandling(async () => {
+  try {
     const body = await request.json();
-    const parsed = updateMilestoneSchema.safeParse(body);
+    const { id, name, description, target_count } = body;
 
-    if (!parsed.success) {
-      return handleZodError(parsed.error);
+    if (!id) {
+      return NextResponse.json({
+        success: false,
+        error: "ID is required"
+      }, { status: 400 });
     }
-
-    const { id, name, description, target_count } = parsed.data;
-
-    log.info({ milestoneId: id }, "Updating milestone");
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
@@ -84,11 +100,21 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) {
-      log.error({ err: error, milestoneId: id }, "Failed to update milestone");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
-    log.info({ milestoneId: id }, "Milestone updated");
-    return apiSuccess({ success: true, milestone });
-  });
+    return NextResponse.json({
+      success: true,
+      milestone
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }

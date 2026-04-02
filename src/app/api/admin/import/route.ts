@@ -1,10 +1,10 @@
-import { NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { apiSuccess, apiError, withErrorHandling } from "@/lib/api-response";
-import { createLogger } from "@/lib/logger";
-import { generateUniqueReferralCode } from "@/lib/services/waitlist";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const log = createLogger({ route: "api/admin/import-csv" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 interface CsvRow {
   position: number;
@@ -12,6 +12,15 @@ interface CsvRow {
   name: string;
   phone: string;
   joined_at: string;
+}
+
+function generateReferralCode(length = 8): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }
 
 function parseCsvLine(line: string): string[] {
@@ -58,9 +67,7 @@ function parseCsv(csvContent: string): CsvRow[] {
 }
 
 export async function POST(request: NextRequest) {
-  return withErrorHandling(async () => {
-    log.info("CSV import request started");
-
+  try {
     let csvContent: string;
     let filename = "waitlist_sign_ups.csv";
 
@@ -70,7 +77,10 @@ export async function POST(request: NextRequest) {
       const formData = await request.formData();
       const file = formData.get("file") as File | null;
       if (!file) {
-        return apiError("VALIDATION_ERROR", "No CSV file provided", 400);
+        return NextResponse.json({
+          success: false,
+          error: "No CSV file provided"
+        }, { status: 400 });
       }
       filename = file.name;
       csvContent = await file.text();
@@ -78,19 +88,22 @@ export async function POST(request: NextRequest) {
       const body = await request.json();
       csvContent = body.csv_content;
       if (!csvContent) {
-        return apiError("VALIDATION_ERROR", "No CSV content provided", 400);
+        return NextResponse.json({
+          success: false,
+          error: "No CSV content provided"
+        }, { status: 400 });
       }
     }
 
-    // Parse CSV
     const rows = parseCsv(csvContent);
-    log.info({ rowCount: rows.length }, "Parsed CSV rows");
 
     if (rows.length === 0) {
-      return apiError("VALIDATION_ERROR", "No valid rows found in CSV", 400);
+      return NextResponse.json({
+        success: false,
+        error: "No valid rows found in CSV"
+      }, { status: 400 });
     }
 
-    // Get existing emails to skip duplicates
     const { data: existingUsers } = await supabaseAdmin
       .from("waitlist_users")
       .select("email");
@@ -99,13 +112,10 @@ export async function POST(request: NextRequest) {
       (existingUsers || []).map((u) => u.email.toLowerCase())
     );
 
-    log.info({ existingCount: existingEmails.size }, "Existing users found");
-
     let imported = 0;
     let skipped = 0;
     const errors: string[] = [];
 
-    // Process in batches for reliability
     const BATCH_SIZE = 50;
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const batch = rows.slice(i, i + BATCH_SIZE);
@@ -118,7 +128,7 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-          const referralCode = await generateUniqueReferralCode();
+          const referralCode = generateReferralCode();
           inserts.push({
             full_name: row.name || "Unknown",
             email: row.email,
@@ -148,27 +158,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    log.info({ imported, skipped, errors: errors.length }, "CSV import completed");
-
-    // Upload CSV to storage
-    const timestamp = Date.now();
-    try {
-      await supabaseAdmin.storage
-        .from("csv-files")
-        .upload(`csv_imports/${timestamp}-${filename}`, csvContent, {
-          contentType: "text/csv",
-          upsert: true,
-        });
-    } catch (storageErr) {
-      log.warn({ err: storageErr }, "Failed to upload CSV to storage");
-    }
-
-    return apiSuccess({
+    return NextResponse.json({
       success: true,
       imported,
       skipped,
       total: rows.length,
-      errors: errors.length > 0 ? errors : undefined,
+      errors: errors.length > 0 ? errors : undefined
     });
-  });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }

@@ -1,65 +1,85 @@
-import { NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
-import { updateSettingsSchema } from "@/lib/schemas";
-import { apiSuccess, apiError, handleZodError, withErrorHandling } from "@/lib/api-response";
-import { createLogger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const log = createLogger({ route: "api/admin/settings" });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
 export async function GET() {
-  return withErrorHandling(async () => {
-    log.info("Settings list request");
-
+  try {
     const { data: settings, error } = await supabaseAdmin
       .from("admin_settings")
       .select("*")
       .order("setting_key", { ascending: true });
 
     if (error) {
-      log.error({ err: error }, "Failed to fetch settings");
-      throw error;
+      return NextResponse.json({
+        success: false,
+        error: error.message
+      }, { status: 500 });
     }
 
-    log.info({ count: settings?.length ?? 0 }, "Settings list returned");
-    return apiSuccess({ settings: settings || [] });
-  });
+    return NextResponse.json({
+      success: true,
+      settings: settings || []
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
-  return withErrorHandling(async () => {
+  try {
     const body = await request.json();
-    const parsed = updateSettingsSchema.safeParse(body);
+    const { settings } = body;
 
-    if (!parsed.success) {
-      return handleZodError(parsed.error);
+    if (!settings || typeof settings !== "object") {
+      return NextResponse.json({
+        success: false,
+        error: "Invalid settings object"
+      }, { status: 400 });
     }
 
-    const { settings } = parsed.data;
+    const entries = Object.entries(settings);
+    const results = [];
 
-    log.info({ keys: Object.keys(settings) }, "Updating settings");
-
-    const entries = Object.entries(settings) as [string, string | null][];
-
-    const upserts = entries.map(([key, value]) =>
-      supabaseAdmin.from("admin_settings").upsert(
-        {
+    for (const [key, value] of entries) {
+      const { data, error } = await supabaseAdmin
+        .from("admin_settings")
+        .upsert({
           setting_key: key,
           setting_value: value,
           updated_at: new Date().toISOString(),
-        },
-        { onConflict: "setting_key" }
-      )
-    );
+        }, { onConflict: "setting_key" })
+        .select()
+        .single();
 
-    const results = await Promise.all(upserts);
+      results.push({ key, data, error });
+    }
+
     const hasError = results.some((r) => r.error);
 
     if (hasError) {
-      log.error("Failed to update some settings");
-      return apiError("DB_ERROR", "Failed to update some settings", 500);
+      return NextResponse.json({
+        success: false,
+        error: "Failed to update some settings"
+      }, { status: 500 });
     }
 
-    log.info({ updatedCount: entries.length }, "Settings updated");
-    return apiSuccess({ success: true });
-  });
+    return NextResponse.json({
+      success: true,
+      updated: entries.length
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({
+      success: false,
+      error: message
+    }, { status: 500 });
+  }
 }
