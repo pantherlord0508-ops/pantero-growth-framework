@@ -1,30 +1,86 @@
 import type { Metadata, Viewport } from "next";
-// import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
-// Replaced next/font/google with hardcoded links in <head> to bypass build-time network errors
 const interVariable = "font-inter";
 const spaceGroteskVariable = "font-space-grotesk";
 
 export const metadata: Metadata = {
-  title: "Pantero - Own Your Identity. Shape Your Path.",
+  metadataBase: new URL("https://pantero.vercel.app"),
+  title: {
+    default: "Pantero - Own Your Identity. Shape Your Path.",
+    template: "%s | Pantero",
+  },
   description:
-    "Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter.",
-  keywords: ["Pantero", "digital identity", "Africa", "AI", "waitlist"],
+    "Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter. Join the waitlist today.",
+  keywords: [
+    "Pantero",
+    "digital identity",
+    "Africa",
+    "AI companion",
+    "African tech",
+    "waitlist",
+    "digital identity Africa",
+    "AI chatbot Africa",
+    "jobs Africa",
+    "skills training Africa",
+    "secure identity",
+    "blockchain identity",
+    "web3 Africa",
+  ],
   generator: "Pantero",
   applicationName: "Pantero",
   referrer: "strict-origin-when-cross-origin",
+  authors: [{ name: "Pantero Team" }],
+  creator: "Pantero",
+  publisher: "Pantero",
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  manifest: "/manifest.json",
+  alternates: {
+    canonical: "https://pantero.vercel.app",
+    languages: {
+      en: "https://pantero.vercel.app",
+    },
   },
   openGraph: {
     type: "website",
+    locale: "en_US",
+    url: "https://pantero.vercel.app",
     siteName: "Pantero",
     title: "Pantero - Own Your Identity. Shape Your Path.",
     description:
       "Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Pantero - Digital Identity for Africa",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pantero - Own Your Identity. Shape Your Path.",
+    description:
+      "Pantero gives every African a secure digital identity and AI companion.",
+    images: ["/og-image.jpg"],
+    creator: "@pantero",
+  },
+  other: {
+    "geo.region": "AF",
+    "geo.placename": "Africa",
+    "ICBM": "0, 0",
   },
 };
 
@@ -39,6 +95,48 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Pantero",
+    url: "https://pantero.vercel.app",
+    logo: "https://pantero.vercel.app/og-image.jpg",
+    description: "Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills.",
+    sameAs: [
+      "https://twitter.com/pantero",
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      availableHours: "24/7",
+    },
+    areaServed: {
+      "@type": "Place",
+      name: "Africa",
+    },
+    serviceType: ["Digital Identity", "AI Companion", "Job Marketplace"],
+  };
+
+  const webappJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Pantero",
+    url: "https://pantero.vercel.app",
+    description: "Digital identity platform for Africa with AI companion and job marketplace",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    creator: {
+      "@type": "Organization",
+      name: "Pantero",
+      url: "https://pantero.vercel.app",
+    },
+  };
+
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
@@ -46,6 +144,18 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="alternate" type="application/rss+xml" title="Pantero Blog" href="/rss.xml" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webappJsonLd) }}
+        />
       </head>
       <body
         className={`${interVariable} ${spaceGroteskVariable} font-body antialiased`}

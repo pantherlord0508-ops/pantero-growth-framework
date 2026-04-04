@@ -96,6 +96,12 @@ export default function AdminPage() {
     pending: number;
     status: string;
   }[]>([]);
+  const [pendingEmails, setPendingEmails] = useState<{
+    recipient_email: string;
+    recipient_name: string;
+    subject: string;
+    created_at: string;
+  }[]>([]);
 
   // Import state
   const [importing, setImporting] = useState(false);
@@ -250,6 +256,9 @@ export default function AdminPage() {
         });
         if (data.campaigns) {
           setEmailCampaigns(data.campaigns);
+        }
+        if (data.pending_emails) {
+          setPendingEmails(data.pending_emails);
         }
       }
     } catch (err) {
@@ -828,6 +837,31 @@ export default function AdminPage() {
                             </span>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pending Emails */}
+                  {pendingEmails.length > 0 && (
+                    <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+                      <p className="mb-3 text-sm font-medium text-yellow-400">Pending Emails ({pendingEmails.length})</p>
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {pendingEmails.slice(0, 10).map((email, index) => (
+                          <div key={index} className="flex items-center justify-between rounded bg-card p-2 text-sm">
+                            <div>
+                              <p className="font-medium text-foreground">{email.recipient_name || email.recipient_email}</p>
+                              <p className="text-xs text-muted-foreground">{email.subject}</p>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(email.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        ))}
+                        {pendingEmails.length > 10 && (
+                          <p className="text-xs text-muted-foreground text-center py-2">
+                            ...and {pendingEmails.length - 10} more
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}

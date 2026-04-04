@@ -91,12 +91,13 @@ export async function POST(request: NextRequest) {
     const errors: string[] = [];
 
     for (const user of usersToSendNow) {
+      const userName = user.full_name || user.email.split('@')[0];
       try {
         const result = await resend.emails.send({
           from: "Pantero Nexus <onboarding@resend.dev>",
           to: user.email,
           subject: subject,
-          html: `<p>Hi ${user.full_name || 'there'},</p>${emailBody}`,
+          html: emailBody,
         });
 
         if (result.error) {
@@ -243,13 +244,21 @@ export async function GET() {
       .select("recipient_email", { count: "exact" })
       .eq("status", "pending");
 
+    const { data: pendingDetails } = await supabaseAdmin
+      .from("email_campaigns")
+      .select("recipient_email, recipient_name, subject, created_at")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
     return NextResponse.json({
       success: true,
       campaigns: campaignList,
       daily_limit: DAILY_LIMIT,
       sent_today: todaySent?.length || 0,
       remaining_today: Math.max(0, DAILY_LIMIT - (todaySent?.length || 0)),
-      total_pending: allPending?.length || 0
+      total_pending: allPending?.length || 0,
+      pending_emails: pendingDetails || []
     });
   } catch (err) {
     return NextResponse.json({

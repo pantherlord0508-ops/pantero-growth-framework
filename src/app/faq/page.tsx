@@ -1,11 +1,63 @@
-"use client";
-
+import { Metadata } from "next";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, ChevronDown } from "lucide-react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
+
+export const metadata: Metadata = {
+  title: "FAQ - Frequently Asked Questions",
+  description: "Get answers to common questions about Pantero, the waitlist, referral milestones, and how to get early access to our digital identity platform.",
+  keywords: ["Pantero FAQ", "digital identity Africa", "waitlist FAQ", "referral program", "AI companion Africa"],
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is Pantero?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Pantero is a platform designed to give every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How does the waitlist work?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Sign up to secure your spot on the Pantero waitlist. You'll receive a unique referral link. Share it with friends and family — each referral moves you up the queue.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What are referral milestones?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Milestones are rewards for spreading the word. As you hit referral targets (3, 5, 10, 25, or 50 referrals), you unlock exclusive perks like priority access and beta features.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is my data safe?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Absolutely. We take data privacy seriously. Your information is encrypted and stored securely using industry-standard practices.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "When will Pantero launch?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "We're currently in the early access phase. Our roadmap includes community formation in Q2 2026, core identity and AI features in Q3 2026, and the job marketplace in Q4 2026.",
+      },
+    },
+  ],
+};
 
 const faqs = [
   {
@@ -125,6 +177,10 @@ export default function FaqPage() {
       </main>
       <Footer />
       <WhatsAppButton />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </>
   );
 }

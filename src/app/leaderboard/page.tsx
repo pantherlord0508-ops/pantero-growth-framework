@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Metadata } from "next";
 import { motion } from "framer-motion";
 import { Trophy, Users, Medal, Crown, TrendingUp, Sparkles } from "lucide-react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Leaderboard - Top Referrers",
+  description: "See the top referrers on the Pantero waitlist. Join the competition and climb the leaderboard by referring friends.",
+  keywords: ["Pantero leaderboard", "top referrers", "waitlist competition", "referral leaderboard Africa"],
+};
 
 interface TopReferrer {
   full_name: string;
