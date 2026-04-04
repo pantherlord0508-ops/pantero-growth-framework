@@ -4,11 +4,19 @@ import type { NextRequest } from "next/server";
 const adminRoutes = ["/admin"];
 const adminApiRoutes = ["/api/admin"];
 
+// Sub-paths that don't require auth (login flow itself)
+const publicAdminPaths = ["/admin/login", "/api/admin/login"];
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route));
-  const isAdminApiRoute = adminApiRoutes.some(route => pathname.startsWith(route));
+  // Allow login page and login API through without auth check
+  if (publicAdminPaths.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
+  const isAdminApiRoute = adminApiRoutes.some((route) => pathname.startsWith(route));
 
   if (isAdminRoute || isAdminApiRoute) {
     const adminAuth = request.cookies.get("admin_token")?.value;
@@ -23,7 +31,7 @@ export function middleware(request: NextRequest) {
           { status: 401 }
         );
       }
-      
+
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }

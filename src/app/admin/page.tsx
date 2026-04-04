@@ -401,7 +401,11 @@ export default function AdminPage() {
   }
 
   function handleLogout() {
+    // Clear server-side cookie
     document.cookie = "admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    // Clear client-side auth state used by header + admin page
+    localStorage.removeItem("admin_auth");
+    localStorage.removeItem("admin_username");
     router.push("/admin/login");
   }
 
