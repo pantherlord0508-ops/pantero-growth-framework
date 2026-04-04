@@ -62,8 +62,8 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.7 }}
           >
-            Own Your Identity.{" "}
-            <span className="text-gradient-gold">Shape Your Path.</span>
+            Your Path to Tech.{" "}
+            <span className="text-gradient-gold">Start Here.</span>
           </motion.h1>
           <motion.p
             className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
@@ -71,7 +71,7 @@ export function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.6 }}
           >
-            Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter.
+            The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, and marketplace — powered by Web3.
           </motion.p>
 
           {/* Trust signals - Company logos */}

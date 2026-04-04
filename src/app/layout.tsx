@@ -8,25 +8,24 @@ const spaceGroteskVariable = "font-space-grotesk";
 export const metadata: Metadata = {
   metadataBase: new URL("https://pantero.vercel.app"),
   title: {
-    default: "Pantero - Own Your Identity. Shape Your Path.",
+    default: "Pantero - Your Path to Tech. Start Here.",
     template: "%s | Pantero",
   },
   description:
-    "Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter. Join the waitlist today.",
+    "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, marketplace — powered by Web3.",
   keywords: [
     "Pantero",
-    "digital identity",
-    "Africa",
-    "AI companion",
-    "African tech",
-    "waitlist",
-    "digital identity Africa",
-    "AI chatbot Africa",
-    "jobs Africa",
-    "skills training Africa",
-    "secure identity",
-    "blockchain identity",
-    "web3 Africa",
+    "tech careers Africa",
+    "African youth tech",
+    "learn programming Africa",
+    "AI companion Africa",
+    "tech education Africa",
+    "Web3 Africa",
+    "blockchain credentials",
+    "digital skills Africa",
+    "tech marketplace Africa",
+    "coding courses Africa",
+    "youth tech platform",
   ],
   generator: "Pantero",
   applicationName: "Pantero",
@@ -57,23 +56,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://pantero.vercel.app",
     siteName: "Pantero",
-    title: "Pantero - Own Your Identity. Shape Your Path.",
+    title: "Pantero - Your Path to Tech. Start Here.",
     description:
-      "Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills that matter.",
+      "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, marketplace — powered by Web3.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Pantero - Digital Identity for Africa",
+        alt: "Pantero - Tech Ecosystem for African Youth",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pantero - Own Your Identity. Shape Your Path.",
+    title: "Pantero - Your Path to Tech. Start Here.",
     description:
-      "Pantero gives every African a secure digital identity and AI companion.",
+      "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers.",
     images: ["/og-image.jpg"],
     creator: "@pantero",
   },
@@ -101,7 +100,7 @@ export default function RootLayout({
     name: "Pantero",
     url: "https://pantero.vercel.app",
     logo: "https://pantero.vercel.app/og-image.jpg",
-    description: "Pantero gives every African a secure digital identity, an AI companion that speaks your language, and direct access to jobs and skills.",
+    description: "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, marketplace — powered by Web3.",
     sameAs: [
       "https://twitter.com/pantero",
     ],
@@ -114,7 +113,7 @@ export default function RootLayout({
       "@type": "Place",
       name: "Africa",
     },
-    serviceType: ["Digital Identity", "AI Companion", "Job Marketplace"],
+    serviceType: ["AI Mentorship", "Tech Education", "Social Network", "Marketplace", "Web3 Credentials"],
   };
 
   const webappJsonLd = {
@@ -122,8 +121,8 @@ export default function RootLayout({
     "@type": "WebApplication",
     name: "Pantero",
     url: "https://pantero.vercel.app",
-    description: "Digital identity platform for Africa with AI companion and job marketplace",
-    applicationCategory: "BusinessApplication",
+    description: "All-in-one tech ecosystem for African youth: AI mentorship, courses, community, marketplace with Web3 credentials",
+    applicationCategory: "EducationApplication",
     operatingSystem: "Web",
     offers: {
       "@type": "Offer",

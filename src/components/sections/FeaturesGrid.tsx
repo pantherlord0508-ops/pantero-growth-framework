@@ -1,33 +1,51 @@
 /**
  * Features grid component.
  *
- * Displays the three core product features in a responsive grid
+ * Displays the core product features in a responsive grid
  * with hover animations and icons.
  */
 
 "use client";
 
 import { motion } from "framer-motion";
-import { Fingerprint, BrainCircuit, Briefcase } from "lucide-react";
+import { BrainCircuit, Users, GraduationCap, ShoppingBag, Fingerprint, Blocks } from "lucide-react";
 
 const features = [
-  {
-    icon: Fingerprint,
-    title: "Digital Identity",
-    description:
-      "A decentralized identity that belongs to you. Verify credentials, prove skills, and own your data \u2014 no corporation required.",
-  },
   {
     icon: BrainCircuit,
     title: "AI Companion",
     description:
-      "An offline-capable AI that speaks Yoruba, Swahili, Hausa, and more. It guides you through skills, jobs, and opportunities in your language.",
+      "Offline-capable AI mentorship in your language. Career guidance, code help, and personalized learning paths — even without internet.",
   },
   {
-    icon: Briefcase,
-    title: "Jobs & Skills",
+    icon: Users,
+    title: "Social Network",
     description:
-      "A marketplace matching your verified skills to real opportunities. Earn blockchain-backed certificates that employers trust.",
+      "Connect with peers, collaborate on projects, showcase portfolios, and share your work with a global tech community.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Learning Hub",
+    description:
+      "Free structured courses in programming, data science, cybersecurity, UI/UX, cloud computing, and mobile development.",
+  },
+  {
+    icon: ShoppingBag,
+    title: "Marketplace",
+    description:
+      "Buy and sell affordable tech equipment, resources, and digital assets. From laptops to courses, all in one place.",
+  },
+  {
+    icon: Fingerprint,
+    title: "Digital Identity",
+    description:
+      "Your verified credentials, blockchain-backed certificates, and portfolio that travels with you — owned by you.",
+  },
+  {
+    icon: Blocks,
+    title: "Web3 Powered",
+    description:
+      "Blockchain credentials, NFT achievement badges, crypto payments, and future DAO governance. Your achievements, verified.",
   },
 ];
 
@@ -46,11 +64,11 @@ export function FeaturesGrid() {
             What Is Pantero?
           </p>
           <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
-            A Nexus for <span className="text-gradient-gold">Africa&apos;s Digital Future</span>
+            Your Complete <span className="text-gradient-gold">Tech Ecosystem</span>
           </h2>
         </motion.div>
 
-        <div className="mt-16 grid gap-6 sm:grid-cols-3">
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
             <motion.div
               key={f.title}

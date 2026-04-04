@@ -99,10 +99,7 @@ export default function AboutPage() {
                 Our Mission
               </h2>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Pantero exists to bridge the digital divide across Africa. We believe every
-                person deserves a secure digital identity, an AI assistant that speaks their
-                language, and direct access to jobs and skills that matter. We&apos;re building
-                the infrastructure that will empower 100 million Africans by 2030.
+                Pantero is an all-in-one ecosystem designed specifically for youth in Africa and developing countries to explore, pursue, and succeed in tech careers. We solve critical pain points including the fragmentation of random online tutorials, lack of structured career guidance, limited access to quality education, and economic barriers to tech adoption. By combining AI mentorship, social networking, educational courses, and a marketplace — all powered by Web3 — we're bridging the technological divide and empowering the next generation of African tech innovators, developers, and digital entrepreneurs.
               </p>
             </motion.div>
 
