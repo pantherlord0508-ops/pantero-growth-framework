@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Metadata } from "next";
 import { motion } from "framer-motion";
 import { PartyPopper, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -10,12 +9,6 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
 import ReferralDashboard from "@/components/referral-dashboard";
-
-export const metadata: Metadata = {
-  title: "Community - Your Dashboard",
-  description: "Welcome to the Pantero community. Track your waitlist position, share your referral link, and connect with other early members.",
-  keywords: ["Pantero community", "waitlist dashboard", "referral program", "share link", "WhatsApp community Africa"],
-};
 
 export default function CommunityPage() {
   const router = useRouter();
