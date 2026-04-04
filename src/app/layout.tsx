@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { Analytics } from "@vercel/analytics/next";
 
 const interVariable = "font-inter";
 const spaceGroteskVariable = "font-space-grotesk";
@@ -161,7 +160,6 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {children}
-        <Analytics />
         <Toaster position="top-right" richColors />
       </body>
     </html>
