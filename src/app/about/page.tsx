@@ -1,34 +1,11 @@
-import { Metadata } from "next";
+"use client";
+
 import { motion } from "framer-motion";
 import { Globe, Shield, Users, Zap, Target, Heart } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
-
-export const metadata: Metadata = {
-  title: "About Us - Building Africa's Digital Future",
-  description: "Learn about Pantero's mission to provide every African with a secure digital identity, AI companion, and access to jobs and skills. Join the movement.",
-  keywords: ["Pantero about", "digital identity Africa", "African tech company", "AI companion Africa", "Pantero mission"],
-};
-
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "AboutPage",
-  name: "About Pantero",
-  description: "Pantero is building digital infrastructure to empower 100 million Africans by 2030.",
-  url: "https://pantero.vercel.app/about",
-  mainEntity: {
-    "@type": "Organization",
-    name: "Pantero",
-    url: "https://pantero.vercel.app",
-    description: "Digital identity and AI platform for Africa",
-    areaServed: {
-      "@type": "Place",
-      name: "Africa",
-    },
-  },
-};
 
 const values = [
   {
@@ -163,10 +140,6 @@ export default function AboutPage() {
       </main>
       <Footer />
       <WhatsAppButton />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
     </>
   );
 }
