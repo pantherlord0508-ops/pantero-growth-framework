@@ -1,19 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Metadata } from "next";
 import { motion } from "framer-motion";
 import { Target, CheckCircle2, Circle } from "lucide-react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
 import { Progress } from "@/components/ui/progress";
-
-export const metadata: Metadata = {
-  title: "Milestones - Community Progress",
-  description: "Track Pantero's collective progress toward our goals. Each milestone unlocks new features and opportunities for the community.",
-  keywords: ["Pantero milestones", "waitlist progress", "community goals", "signups milestone", "target goals Africa"],
-};
 
 interface Milestone {
   id: string;
