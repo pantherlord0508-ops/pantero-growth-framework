@@ -6,11 +6,11 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: true },
   images: {
     remotePatterns: [],
+    unoptimized: true,
   },
   transpilePackages: ['lucide-react', 'three', '@react-three/fiber', '@react-three/drei'],
   webpack: (config, { dev, isServer }) => {
     if (!dev && !isServer) {
-      // Strip Next.js markers from production client bundles
       const originalEntry = config.entry;
       config.entry = async () => {
         const entries = await originalEntry();

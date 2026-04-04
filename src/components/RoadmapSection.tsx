@@ -1,7 +1,7 @@
 "use client";
 
 import AnimatedSection from "./AnimatedSection";
-import { CheckCircle2, Users, FlaskConical, TestTubes, Rocket, Sparkles } from "lucide-react";
+import { CheckCircle2, Users, FlaskConical, Beaker, Rocket, Sparkles } from "lucide-react";
 
 const milestones = [
   {
@@ -29,7 +29,7 @@ const milestones = [
     completed: false,
   },
   {
-    icon: TestTubes,
+    icon: Beaker,
     date: "Aug 2026",
     title: "Beta Testing",
     description: "Open beta with expanded feature set. Jobs marketplace, skills platform, and multi-language AI companion.",

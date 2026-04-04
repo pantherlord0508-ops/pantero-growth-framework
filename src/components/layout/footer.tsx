@@ -26,7 +26,7 @@ export default function Footer() {
               Pantero
             </Link>
             <p className="mt-1 text-xs text-muted-foreground">
-              Own Your Identity. Shape Your Path.
+              Your Path to Tech. Start Here.
             </p>
           </div>
 
