@@ -1,16 +1,11 @@
-import { Metadata } from "next";
+"use client";
+
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, ChevronDown } from "lucide-react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import WhatsAppButton from "@/components/layout/whatsapp-button";
-
-export const metadata: Metadata = {
-  title: "FAQ - Frequently Asked Questions",
-  description: "Get answers to common questions about Pantero, the waitlist, referral milestones, and how to get early access to our digital identity platform.",
-  keywords: ["Pantero FAQ", "digital identity Africa", "waitlist FAQ", "referral program", "AI companion Africa"],
-};
 
 const jsonLd = {
   "@context": "https://schema.org",
