@@ -38,6 +38,10 @@ export const metadata: Metadata = {
   authors: [{ name: "Pantero Team" }],
   creator: "Pantero",
   publisher: "Pantero",
+  icons: {
+    icon: "/favicon.jpg",
+    apple: "/favicon.jpg",
+  },
   robots: {
     index: true,
     follow: true,
@@ -145,7 +149,12 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <meta name="framework" content="" />
-        <link rel="icon" href="/favicon.jpg" type="image/jpeg" />
+        <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.jpg" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.jpg" />
+        <link rel="apple-touch-icon" href="/favicon.jpg" />
+        <meta name="theme-color" content="#0a0e17" />
+        <meta name="apple-mobile-web-app-title" content="Pantero" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
