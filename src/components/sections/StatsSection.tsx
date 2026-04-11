@@ -45,46 +45,11 @@ const staticStats: Stat[] = [
   },
   {
     icon: TrendingUp,
-    label: "Platform Valuation",
-    value: 50,
-    suffix: "M+",
-    description: "$50M+ growth potential by launch",
+    label: "Growth Rate",
+    value: 340,
+    suffix: "%",
+    description: "Week-over-week waitlist growth",
     color: "#FF9900",
-  },
-];
-
-const premiumStats: Stat[] = [
-  {
-    icon: Users,
-    label: "TAM",
-    value: 2,
-    suffix: "B+",
-    description: "Total Addressable Market in Africa",
-    color: "#10B981",
-  },
-  {
-    icon: Globe2,
-    label: "SAM",
-    value: 400,
-    suffix: "M+",
-    description: "Serviceable Available Market",
-    color: "#3B82F6",
-  },
-  {
-    icon: Share2,
-    label: "Youth Online",
-    value: 650,
-    suffix: "M+",
-    description: "African youth with internet access",
-    color: "#8B5CF6",
-  },
-  {
-    icon: TrendingUp,
-    label: "Tech Skills Gap",
-    value: 25,
-    suffix: "M+",
-    description: "Unfilled tech jobs in Africa by 2030",
-    color: "#F59E0B",
   },
 ];
 
@@ -208,30 +173,6 @@ export function StatsSection() {
             <StatCard key={stat.label} stat={stat} index={i} enabled={inView} />
           ))}
         </div>
-
-        {/* Premium Stats - $50M+ Waitlist Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto mt-16 max-w-4xl"
-        >
-          <div className="text-center mb-8">
-            <p className="mb-2 text-sm font-medium uppercase tracking-[0.2em] text-primary">
-              $50M+ Waitlist Potential
-            </p>
-            <h3 className="font-display text-2xl font-bold text-foreground">
-              Why Investors Are{" "}
-              <span className="text-gradient-gold">Watching Closely</span>
-            </h3>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {premiumStats.map((stat, i) => (
-              <StatCard key={stat.label} stat={stat} index={i} enabled={inView} />
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );
