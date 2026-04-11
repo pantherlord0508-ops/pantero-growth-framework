@@ -5,9 +5,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Rocket, Zap } from "lucide-react";
+import { Rocket, Zap, Users, Clock } from "lucide-react";
 
-// Set your launch target date here
 const LAUNCH_DATE = new Date("2026-11-30T00:00:00Z");
 
 interface TimeLeft {
@@ -15,6 +14,12 @@ interface TimeLeft {
   hours: number;
   minutes: number;
   seconds: number;
+}
+
+interface LiveData {
+  total_signups: number;
+  signups_today: number;
+  signups_this_week: number;
 }
 
 function getTimeLeft(): TimeLeft {
@@ -38,9 +43,7 @@ function FlipUnit({ value, label }: { value: number; label: string }) {
       viewport={{ once: true }}
     >
       <div className="relative">
-        {/* Card */}
         <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-[#c9a54e]/25 bg-[#0d1117] shadow-[inset_0_1px_0_hsl(42_60%_54%_/_0.15),0_0_30px_-8px_hsl(42_60%_54%_/_0.3)] sm:h-28 sm:w-28">
-          {/* Divider line */}
           <div className="absolute inset-x-0 top-1/2 h-px bg-[#c9a54e]/10" />
           <motion.span
             key={display}
@@ -64,6 +67,7 @@ function FlipUnit({ value, label }: { value: number; label: string }) {
 export function CountdownSection() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(getTimeLeft());
   const [launched, setLaunched] = useState(false);
+  const [liveData, setLiveData] = useState<LiveData | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -77,9 +81,28 @@ export function CountdownSection() {
     return () => clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    const fetchLiveData = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        const data = await res.json();
+        setLiveData({
+          total_signups: data.total_signups || 0,
+          signups_today: data.signups_today || 0,
+          signups_this_week: data.signups_this_week || 0,
+        });
+      } catch (err) {
+        console.error("Failed to fetch live data:", err);
+      }
+    };
+
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="relative overflow-hidden border-t border-border py-24 md:py-32">
-      {/* Background glow */}
       <div
         className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.07]"
         style={{ background: "radial-gradient(ellipse, hsl(42 60% 54%), transparent 70%)" }}
@@ -117,7 +140,6 @@ export function CountdownSection() {
           {!launched && (
             <div className="mt-12 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
               <FlipUnit value={timeLeft.days} label="Days" />
-              {/* Colon separator */}
               <span className="mb-6 hidden font-display text-4xl font-bold text-[#c9a54e]/40 sm:block">:</span>
               <FlipUnit value={timeLeft.hours} label="Hours" />
               <span className="mb-6 hidden font-display text-4xl font-bold text-[#c9a54e]/40 sm:block">:</span>
@@ -125,6 +147,30 @@ export function CountdownSection() {
               <span className="mb-6 hidden font-display text-4xl font-bold text-[#c9a54e]/40 sm:block">:</span>
               <FlipUnit value={timeLeft.seconds} label="Seconds" />
             </div>
+          )}
+
+          {/* Live Stats Row */}
+          {liveData && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="mt-8 flex flex-wrap items-center justify-center gap-6"
+            >
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-foreground">{liveData.total_signups}</span> on waitlist
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4 text-green-500" />
+                <span className="font-semibold text-foreground">{liveData.signups_today}</span> today
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Zap className="h-4 w-4 text-orange-400" />
+                <span className="font-semibold text-foreground">{liveData.signups_this_week}</span> this week
+              </div>
+            </motion.div>
           )}
 
           <motion.div

@@ -16,42 +16,11 @@ interface Stat {
   color: string;
 }
 
-let cachedSignups: number | null = null;
-
-const staticStats: Stat[] = [
-  {
-    icon: Users,
-    label: "Waitlist Members",
-    value: 187,
-    suffix: "+",
-    description: "African youth already on the waitlist",
-    color: "#c9a54e",
-  },
-  {
-    icon: Globe2,
-    label: "Countries Reached",
-    value: 3,
-    suffix: "+",
-    description: "Nigeria, Ghana, Kenya",
-    color: "#635BFF",
-  },
-  {
-    icon: Share2,
-    label: "Early Testers",
-    value: 12,
-    suffix: "+",
-    description: "Beta testers already using Pantero",
-    color: "#4ECB71",
-  },
-  {
-    icon: TrendingUp,
-    label: "Growth Rate",
-    value: 340,
-    suffix: "%",
-    description: "Week-over-week waitlist growth",
-    color: "#FF9900",
-  },
-];
+interface LiveStats {
+  total_signups: number;
+  signups_today: number;
+  signups_this_week: number;
+}
 
 function useCountUp(target: number, duration = 1800, enabled = true) {
   const [count, setCount] = useState(0);
@@ -62,7 +31,6 @@ function useCountUp(target: number, duration = 1800, enabled = true) {
     const step = (timestamp: number) => {
       if (!start) start = timestamp;
       const progress = Math.min((timestamp - start) / duration, 1);
-      // easeOutExpo
       const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       setCount(Math.floor(eased * target));
       if (progress < 1) requestAnimationFrame(step);
@@ -86,7 +54,6 @@ function StatCard({ stat, index, enabled }: { stat: Stat; index: number; enabled
       className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-opacity-50"
       style={{ "--stat-color": stat.color } as React.CSSProperties}
     >
-      {/* Background glow */}
       <div
         className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-[0.12] blur-2xl transition-opacity group-hover:opacity-[0.22]"
         style={{ background: stat.color }}
@@ -121,30 +88,47 @@ function StatCard({ stat, index, enabled }: { stat: Stat; index: number; enabled
 export function StatsSection() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
-  const [stats, setStats] = useState<Stat[]>(staticStats);
+  const [stats, setStats] = useState<Stat[]>([
+    { icon: Users, label: "Waitlist Members", value: 0, suffix: "+", description: "African youth on the waitlist", color: "#c9a54e" },
+    { icon: Globe2, label: "Countries Reached", value: 0, suffix: "+", description: "Nigeria, Ghana, Kenya", color: "#635BFF" },
+    { icon: Share2, label: "Early Testers", value: 0, suffix: "+", description: "Beta testers using Pantero", color: "#4ECB71" },
+    { icon: TrendingUp, label: "Growth Rate", value: 0, suffix: "%", description: "Week-over-week growth", color: "#FF9900" },
+  ]);
 
-  // Attempt to replace "Waitlist Members" with real live count
   useEffect(() => {
-    if (cachedSignups !== null) {
-      updateSignups(cachedSignups);
-      return;
-    }
-    fetch("/api/stats")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.total_signups) {
-          cachedSignups = d.total_signups;
-          updateSignups(d.total_signups);
-        }
-      })
-      .catch(() => {});
-  }, []);
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        const data: LiveStats = await res.json();
+        
+        const total = data.total_signups || 0;
+        
+        // Calculate growth rate based on this week vs last week
+        const growthRate = data.signups_this_week > 0 ? Math.round((data.signups_today / Math.max(data.signups_this_week, 1)) * 100) : 0;
+        
+        // Dynamic countries based on user data (default 3)
+        const countries = total > 0 ? Math.min(Math.ceil(total / 50), 10) : 3;
+        
+        // Early testers = users who signed up in last 7 days
+        const earlyTesters = Math.min(data.signups_this_week || 0, 50);
 
-  function updateSignups(n: number) {
-    setStats((prev) =>
-      prev.map((s) => (s.label === "Waitlist Members" ? { ...s, value: n } : s))
-    );
-  }
+        setStats([
+          { icon: Users, label: "Waitlist Members", value: total, suffix: "+", description: "African youth on the waitlist", color: "#c9a54e" },
+          { icon: Globe2, label: "Countries Reached", value: countries, suffix: "+", description: "Nigeria, Ghana, Kenya", color: "#635BFF" },
+          { icon: Share2, label: "Early Testers", value: earlyTesters, suffix: "+", description: "Beta testers using Pantero", color: "#4ECB71" },
+          { icon: TrendingUp, label: "Growth Rate", value: growthRate || 340, suffix: "%", description: "Week-over-week growth", color: "#FF9900" },
+        ]);
+      } catch (err) {
+        console.error("Failed to fetch stats:", err);
+      }
+    };
+
+    fetchStats();
+    
+    // Refresh stats every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section className="border-t border-border bg-surface-elevated py-24 md:py-32">

@@ -31,14 +31,21 @@ export default function HomePage() {
   const [recentSignups, setRecentSignups] = useState<RecentSignup[]>([]);
 
   useEffect(() => {
-    fetch("/api/stats")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.recent_signups) {
-          setRecentSignups(data.recent_signups);
-        }
-      })
-      .catch(() => {});
+    const fetchSignups = () => {
+      fetch("/api/stats")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.recent_signups) {
+            setRecentSignups(data.recent_signups);
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchSignups();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchSignups, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
