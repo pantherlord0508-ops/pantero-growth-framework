@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { TrendingUp } from "lucide-react";
 
 interface DailyTrend {
@@ -45,13 +45,7 @@ export default function SignupChart() {
         </span>
       </div>
       <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={formattedData}>
-          <defs>
-            <linearGradient id="signupGoldGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(42 60% 54%)" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="hsl(42 60% 54%)" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+        <BarChart data={formattedData}>
           <XAxis
             dataKey="date"
             axisLine={false}
@@ -69,14 +63,15 @@ export default function SignupChart() {
               fontSize: 12,
             }}
           />
-          <Area
-            type="monotone"
-            dataKey="signups"
-            stroke="hsl(42 60% 54%)"
-            strokeWidth={2}
-            fill="url(#signupGoldGradient)"
-          />
-        </AreaChart>
+          <Bar dataKey="signups" radius={[4, 4, 0, 0]}>
+            {formattedData.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={index === formattedData.length - 1 ? "hsl(42 60% 54%)" : "hsl(42 60% 54% / 0.4)"} 
+              />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );
