@@ -20,9 +20,9 @@ const features = [
   },
   {
     icon: Users,
-    title: "Social Network",
+    title: "Community Workspace",
     description:
-      "Connect with peers, collaborate on projects, showcase portfolios, and share your work with a global tech community.",
+      "Connect with peers, collaborate on projects, showcase portfolios, and work together in shared spaces — even offline.",
     color: "#635BFF",
   },
   {
@@ -74,7 +74,7 @@ export function FeaturesGrid() {
             <span className="text-gradient-gold">Tech Ecosystem</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Six pillars built to take African tech talent from zero to world-class.
+            Five pillars in one powerful platform. Everything African youth need to learn, connect, trade, and build — even without internet.
           </p>
         </motion.div>
 

@@ -34,18 +34,18 @@ export function CTASection() {
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/join"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-10 py-4 font-display text-sm font-semibold text-primary-foreground shadow-gold transition-all hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-yellow-500 px-12 py-5 font-display text-base font-bold text-black shadow-gold transition-all hover:scale-[1.02] hover:shadow-[0_0_32px_-4px_hsl(42_60%_54%_/_0.6)]"
             >
               Join the Waitlist
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-5 w-5" />
             </Link>
             <a
               href={process.env.NEXT_PUBLIC_WHATSAPP_CHANNEL_URL || "https://chat.whatsapp.com"}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-8 py-3.5 font-display text-sm font-medium text-foreground transition-all hover:bg-secondary hover:border-gold-dim"
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-green-500/50 bg-green-500/10 px-10 py-5 font-display text-base font-semibold text-green-400 transition-all hover:bg-green-500/20"
             >
-              WhatsApp Community
+              Join WhatsApp Channel
             </a>
           </div>
           <p className="mt-6 text-xs text-muted-foreground">

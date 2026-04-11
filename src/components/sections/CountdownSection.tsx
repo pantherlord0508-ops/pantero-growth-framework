@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { Rocket, Zap } from "lucide-react";
 
 // Set your launch target date here
-const LAUNCH_DATE = new Date("2025-07-01T00:00:00Z");
+const LAUNCH_DATE = new Date("2026-11-30T00:00:00Z");
 
 interface TimeLeft {
   days: number;

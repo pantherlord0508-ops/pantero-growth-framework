@@ -29,7 +29,7 @@ export function SignupSection() {
   }, []);
 
   return (
-    <section id="signup" className="border-t border-border py-24 md:py-32">
+    <section id="signup" className="border-t border-border py-24 md:py-32 scroll-mt-20">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -46,6 +46,11 @@ export function SignupSection() {
             </h2>
             <p className="mt-4 text-muted-foreground">
               Secure your spot. Refer friends to move up the queue.
+            </p>
+
+            {/* Social proof text */}
+            <p className="mt-4 text-sm text-primary font-medium">
+              Join 187+ others on the waitlist
             </p>
 
             {/* Urgency indicator */}

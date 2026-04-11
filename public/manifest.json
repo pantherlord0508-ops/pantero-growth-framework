@@ -1,7 +1,7 @@
 {
-  "name": "Pantero - Your Path to Tech. Start Here.",
+  "name": "Pantero | Offline AI for African Youth",
   "short_name": "Pantero",
-  "description": "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, marketplace — powered by Web3.",
+  "description": "Offline AI for African Youth. Learn coding, get AI mentorship, and build tech skills without internet.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -47,23 +47,10 @@
   ],
   "shortcuts": [
     {
-      "name": "Explore Courses",
-      "short_name": "Courses",
-      "description": "Explore tech courses and learning paths",
-      "url": "/courses",
-      "icons": [
-        {
-          "src": "/favicon.jpg",
-          "sizes": "192x192",
-          "type": "image/jpeg"
-        }
-      ]
-    },
-    {
-      "name": "AI Mentorship",
-      "short_name": "Mentorship",
-      "description": "Get AI-powered mentorship for your tech journey",
-      "url": "/mentorship",
+      "name": "Join Waitlist",
+      "short_name": "Join",
+      "description": "Join the Pantero waitlist",
+      "url": "/join",
       "icons": [
         {
           "src": "/favicon.jpg",

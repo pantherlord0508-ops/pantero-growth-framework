@@ -20,6 +20,7 @@ import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { CountdownSection } from "@/components/sections/CountdownSection";
 import { CTASection } from "@/components/sections/CTASection";
 import RoadmapSection from "@/components/RoadmapSection";
+import ProgressShowcase from "@/components/ProgressShowcase";
 
 interface RecentSignup {
   name: string;
@@ -48,6 +49,7 @@ export default function HomePage() {
       <StatsSection />
       <SignupSection />
       <FeaturesGrid />
+      <ProgressShowcase />
       <TestimonialsSection />
       <CountdownSection />
       <RoadmapSection />

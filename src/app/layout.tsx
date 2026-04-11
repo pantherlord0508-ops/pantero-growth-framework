@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { favicon } from "lucide-react";
 
 const interVariable = "font-inter";
 const spaceGroteskVariable = "font-space-grotesk";
@@ -8,24 +9,28 @@ const spaceGroteskVariable = "font-space-grotesk";
 export const metadata: Metadata = {
   metadataBase: new URL("https://pantero.vercel.app"),
   title: {
-    default: "Pantero - Your Path to Tech. Start Here.",
+    default: "Pantero | Offline Community, Marketplace & AI for African Youth",
     template: "%s | Pantero",
   },
   description:
-    "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, marketplace — powered by Web3.",
+    "Pantero - Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn coding, and access AI mentorship without internet. Built by a FUTO undergraduate.",
   keywords: [
     "Pantero",
-    "tech careers Africa",
+    "offline platform Africa",
+    "community workspace Africa",
+    "marketplace Africa",
     "African youth tech",
     "learn programming Africa",
     "AI companion Africa",
-    "tech education Africa",
+    "offline AI",
     "Web3 Africa",
     "blockchain credentials",
     "digital skills Africa",
     "tech marketplace Africa",
     "coding courses Africa",
     "youth tech platform",
+    "African marketplace",
+    "offline learning Africa",
   ],
   generator: "Pantero",
   applicationName: "Pantero",
@@ -56,23 +61,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://pantero.vercel.app",
     siteName: "Pantero",
-    title: "Pantero - Your Path to Tech. Start Here.",
+    title: "Pantero | Offline Community, Marketplace & AI for African Youth",
     description:
-      "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, marketplace — powered by Web3.",
+      "Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn, and access AI without internet.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Pantero - Tech Ecosystem for African Youth",
+        alt: "Pantero - Offline Community, Marketplace & AI for African Youth",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pantero - Your Path to Tech. Start Here.",
+    title: "Pantero | Offline Community, Marketplace & AI for African Youth",
     description:
-      "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers.",
+      "Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn without internet.",
     images: ["/og-image.jpg"],
     creator: "@pantero",
   },
@@ -140,6 +145,7 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <meta name="framework" content="" />
+        <link rel="icon" href="/favicon.jpg" type="image/jpeg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />

@@ -53,14 +53,14 @@ const howHeardOptions = [
 ];
 
 const formSchema = z.object({
-  full_name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Enter a valid email address"),
-  country_code: z.string().min(1, "Select a country code"),
+  full_name: z.string().min(2, "Please enter your full name (at least 2 characters)"),
+  email: z.string().email("Please enter a valid email address (e.g., you@example.com)"),
+  country_code: z.string().min(1, "Please select your country code"),
   whatsapp_number: z
     .string()
-    .min(6, "Enter a valid phone number")
-    .max(15, "Phone number is too long"),
-  how_heard: z.string().min(1, "Tell us how you heard about us"),
+    .min(6, "Please enter a valid WhatsApp number (at least 6 digits)")
+    .max(15, "Phone number is too long. Please check."),
+  how_heard: z.string().min(1, "Please tell us how you heard about Pantero"),
   company_role: z.string().optional(),
 });
 
@@ -124,7 +124,7 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
         localStorage.setItem("pantero_position", String(data.user.position));
       }
 
-      toast.success("You're on the waitlist! Share your link to move up.");
+      toast.success("You're on the waitlist! Check your WhatsApp for updates.");
       router.push("/community");
     } catch (err) {
       // Handle network errors
@@ -257,7 +257,7 @@ function SignupFormInner({ referral_code }: SignupFormProps) {
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-gradient-to-r from-primary to-yellow-500 text-black font-semibold hover:from-yellow-500 hover:to-yellow-400"
             disabled={submitting}
           >
             {submitting ? (

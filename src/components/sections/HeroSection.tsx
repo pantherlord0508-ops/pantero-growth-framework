@@ -13,11 +13,10 @@ import Link from "next/link";
 import LiveStats from "@/components/dashboard/live-stats";
 
 const companyLogos = [
-  { name: "Google", color: "#4285F4" },
-  { name: "Meta", color: "#0668E1" },
-  { name: "Amazon", color: "#FF9900" },
-  { name: "Microsoft", color: "#00A4EF" },
-  { name: "Stripe", color: "#635BFF" },
+  { name: "FUTO", color: "#c9a54e" },
+  { name: "Nigeria", color: "#0668E1" },
+  { name: "Ghana", color: "#FF9900" },
+  { name: "Kenya", color: "#00A4EF" },
 ];
 
 // 14 particles at varied positions
@@ -104,8 +103,8 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.7 }}
           >
-            Your Path to Tech.{" "}
-            <span className="text-gradient-gold">Start Here.</span>
+            Africa&apos;s Offline{" "}
+            <span className="text-gradient-gold">Community & Marketplace.</span>
           </motion.h1>
 
           <motion.p
@@ -114,9 +113,32 @@ export function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.45, duration: 0.6 }}
           >
-            The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers.
-            AI mentorship, courses, community, and marketplace — powered by Web3.
+            The all-in-one platform for African youth: <strong>Community Workspace</strong> • <strong>Marketplace</strong> • <strong>AI Companion</strong> • <strong>Learning</strong> • <strong>Web3 Credentials</strong> — works offline, even without internet.
           </motion.p>
+
+          {/* 5 Parts Overview */}
+          <motion.div
+            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            <span className="rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-medium text-primary">
+              🏢 Community Workspace
+            </span>
+            <span className="rounded-full bg-green-500/10 border border-green-500/20 px-4 py-2 text-sm font-medium text-green-400">
+              🛒 Marketplace
+            </span>
+            <span className="rounded-full bg-orange-500/10 border border-orange-500/20 px-4 py-2 text-sm font-medium text-orange-400">
+              🤖 AI Companion
+            </span>
+            <span className="rounded-full bg-blue-500/10 border border-blue-500/20 px-4 py-2 text-sm font-medium text-blue-400">
+              📚 Learning
+            </span>
+            <span className="rounded-full bg-purple-500/10 border border-purple-500/20 px-4 py-2 text-sm font-medium text-purple-400">
+              🔐 Web3 Credentials
+            </span>
+          </motion.div>
 
           {/* Trust signals */}
           <motion.div
@@ -126,7 +148,7 @@ export function HeroSection() {
             transition={{ delay: 0.55, duration: 0.6 }}
           >
             <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              Trusted community — from all corners of Africa
+              187+ on waitlist • Built by a FUTO undergraduate
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 opacity-50 grayscale">
               {companyLogos.map((logo) => (
@@ -160,14 +182,14 @@ export function HeroSection() {
           >
             <Link
               href="/join"
-              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 font-display text-sm font-semibold text-primary-foreground shadow-gold transition-all hover:scale-[1.04] hover:shadow-[0_0_28px_-4px_hsl(42_60%_54%_/_0.5)] active:scale-[0.98]"
+              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-yellow-500 px-10 py-4 font-display text-base font-bold text-black shadow-gold transition-all hover:scale-[1.04] hover:shadow-[0_0_32px_-4px_hsl(42_60%_54%_/_0.6)] active:scale-[0.98]"
             >
               Join the Waitlist
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <a
               href="#signup"
-              className="inline-flex items-center gap-2 rounded-xl border border-border px-8 py-3.5 font-display text-sm font-medium text-foreground backdrop-blur-sm transition-all hover:border-gold-dim hover:bg-secondary"
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-border px-10 py-4 font-display text-base font-semibold text-foreground backdrop-blur-sm transition-all hover:border-gold-dim hover:bg-secondary"
             >
               Sign Up Below
             </a>
