@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "crypto";
+import { sendWelcomeEmail } from "@/lib/email";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cmqzshcmwgkjsciuvztc.supabase.co";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     const position = (lastUser?.position || 0) + 1;
-    const referralCode = generateReferralCode();
+    const newReferralCode = generateReferralCode();
 
     // Create user
     const { data, error } = await supabaseAdmin
@@ -62,13 +63,13 @@ export async function POST(request: NextRequest) {
         full_name,
         email: email.toLowerCase(),
         whatsapp_number,
-        referral_code: referralCode,
+        referral_code: newReferralCode,
         position,
         how_heard: how_heard || null,
         company_role: company_role || null,
         source: "web",
       })
-      .select("id, referral_code, position")
+      .select("id, referral_code, position, email, full_name")
       .single();
 
     if (error) {
@@ -77,6 +78,16 @@ export async function POST(request: NextRequest) {
         error: error.message || "Failed to create user"
       }, { status: 500 });
     }
+
+    // Send welcome email asynchronously (non-blocking)
+    sendWelcomeEmail({
+      full_name: data.full_name,
+      email: data.email,
+      referral_code: data.referral_code,
+      position: data.position,
+    }).catch((emailError) => {
+      console.error("Failed to send welcome email:", emailError);
+    });
 
     return NextResponse.json({
       success: true,
