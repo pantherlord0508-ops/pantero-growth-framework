@@ -173,11 +173,12 @@ export default function RootLayout({
         <meta name="publisher" content="Pantero" />
         
         {/* Favicon - Multiple formats for better compatibility */}
+        <link rel="icon" type="image/svg+xml" href="https://pantero.vercel.app/favicon.svg" />
         <link rel="icon" type="image/jpeg" href="https://pantero.vercel.app/favicon.jpg" />
         <link rel="icon" type="image/png" sizes="32x32" href="https://pantero.vercel.app/favicon.jpg" />
         <link rel="icon" type="image/png" sizes="16x16" href="https://pantero.vercel.app/favicon.jpg" />
         <link rel="apple-touch-icon" href="https://pantero.vercel.app/favicon.jpg" />
-        <link rel="shortcut icon" href="https://pantero.vercel.app/favicon.jpg" />
+        <link rel="shortcut icon" href="https://pantero.vercel.app/favicon.svg" />
         
         {/* Theme & Mobile */}
         <meta name="theme-color" content="#0a0e17" />
@@ -193,8 +194,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
         
-        {/* RSS & Sitemap */}
-        <link rel="alternate" type="application/rss+xml" title="Pantero Blog" href="https://pantero.vercel.app/rss.xml" />
+        {/* Sitemap */}
         <link rel="sitemap" type="application/xml" title="Sitemap" href="https://pantero.vercel.app/sitemap.xml" />
         
         {/* SEO Meta Tags */}
