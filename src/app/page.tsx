@@ -21,6 +21,7 @@ import { CountdownSection } from "@/components/sections/CountdownSection";
 import { CTASection } from "@/components/sections/CTASection";
 import RoadmapSection from "@/components/RoadmapSection";
 import ProgressShowcase from "@/components/ProgressShowcase";
+import PanteroIntroLoader from "@/components/intro/PanteroIntroLoader";
 
 interface RecentSignup {
   name: string;
@@ -29,6 +30,16 @@ interface RecentSignup {
 
 export default function HomePage() {
   const [recentSignups, setRecentSignups] = useState<RecentSignup[]>([]);
+  const [showIntro, setShowIntro] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const hasSeenIntro = localStorage.getItem("pantero_intro_seen");
+    if (!hasSeenIntro) {
+      setShowIntro(true);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchSignups = () => {
@@ -43,10 +54,20 @@ export default function HomePage() {
     };
 
     fetchSignups();
-    // Refresh every 30 seconds
     const interval = setInterval(fetchSignups, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleIntroComplete = () => {
+    localStorage.setItem("pantero_intro_seen", "true");
+    setShowIntro(false);
+  };
+
+  if (!mounted) return null;
+
+  if (showIntro) {
+    return <PanteroIntroLoader onComplete={handleIntroComplete} />;
+  }
 
   return (
     <>
