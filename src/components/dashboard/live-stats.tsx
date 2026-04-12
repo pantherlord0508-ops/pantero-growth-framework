@@ -62,42 +62,49 @@ export default function LiveStats() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    fetch("/api/stats", { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        clearTimeout(timeoutId);
-        
-        // Handle API-level errors
-        if (data.success === false) {
-          setError(data.error || "Failed to load stats");
+    const fetchStats = () => {
+      fetch("/api/stats", { signal: controller.signal })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          clearTimeout(timeoutId);
+          
+          if (data.success === false) {
+            setError(data.error || "Failed to load stats");
+            setLoading(false);
+            return;
+          }
+          
+          setStats({
+            total_signups: data.total_signups ?? 0,
+            signups_today: data.signups_today ?? 0,
+            signups_this_week: data.signups_this_week ?? 0,
+          });
           setLoading(false);
-          return;
-        }
-        
-        setStats({
-          total_signups: data.total_signups ?? 0,
-          signups_today: data.signups_today ?? 0,
-          signups_this_week: data.signups_this_week ?? 0,
+        })
+        .catch((err) => {
+          clearTimeout(timeoutId);
+          if (err.name === "AbortError") {
+            setError("Request timed out");
+          } else {
+            setError(err.message || "Failed to load stats");
+          }
+          setLoading(false);
         });
-        setLoading(false);
-      })
-      .catch((err) => {
-        clearTimeout(timeoutId);
-        if (err.name === "AbortError") {
-          setError("Request timed out");
-        } else {
-          setError(err.message || "Failed to load stats");
-        }
-        setLoading(false);
-      });
+    };
 
+    fetchStats();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    
     return () => {
       clearTimeout(timeoutId);
+      clearInterval(interval);
       controller.abort();
     };
   }, []);
