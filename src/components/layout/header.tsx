@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const publicNavLinks = [
   { label: "Home", href: "/" },
+  { label: "Features", href: "/features" },
   { label: "Status", href: "/status" },
   { label: "Roadmap", href: "/roadmap" },
   { label: "Leaderboard", href: "/leaderboard" },
