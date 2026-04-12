@@ -1,64 +1,60 @@
-import { useState, useEffect, useRef, Suspense, lazy } from "react";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bot, Coins, ShoppingBag, Users, Store, Palette, Quote,
+  Wifi, MessageSquare, Users, ShoppingBag, BookOpen, Shield,
+  Sparkles, Zap, ArrowRight
 } from "lucide-react";
 
-const IntroCanvas = lazy(() => import("./IntroCanvas"));
+const GOLD = "#C6A85C";
 
-const GOLD = "#C6A85B";
-
-type Phase = "countdown" | "dice" | "emerge" | "brand" | "features" | "dissolve" | "exit";
+type Phase = "intro" | "features" | "brand" | "transition" | "exit";
 
 const PHASE_DURATIONS: Record<Phase, number> = {
-  countdown: 3000,
-  dice: 3000,
-  emerge: 44000,
-  brand: 4000,
-  features: 3000,
-  dissolve: 2000,
-  exit: 1000,
+  intro: 2000,
+  features: 3500,
+  brand: 2500,
+  transition: 1500,
+  exit: 800,
 };
 
-const PHASE_ORDER: Phase[] = [
-  "countdown", "dice", "emerge", "brand", "features", "dissolve", "exit",
-];
-
-const FEATURE_DATA = [
+const PLATFORM_FEATURES = [
   {
-    icon: Bot,
-    name: "AI Study Assistant",
-    description: "Your intelligent study companion powered by advanced AI. Get personalized explanations, instant answers to complex questions, and adaptive learning paths tailored to your pace and style.",
+    icon: Wifi,
+    name: "Offline First",
+    tagline: "Works without internet",
+    description: "Access all features even in low connectivity areas. Built for Africa's unique challenges.",
   },
   {
-    icon: Coins,
-    name: "Token Mining",
-    description: "Earn rewards as you learn. Our gamified mining system converts your study progress into tokens — the more you engage, practice, and achieve, the more you earn within the ecosystem.",
+    icon: Users,
+    name: "Community Workspace",
+    tagline: "Connect & collaborate",
+    description: "Join a thriving community of learners and builders. Share knowledge, work on projects together.",
   },
   {
     icon: ShoppingBag,
     name: "Marketplace",
-    description: "A vibrant digital marketplace where knowledge meets commerce. Trade study materials, premium resources, and exclusive content created by top learners and educators in the community.",
+    tagline: "Trade & earn",
+    description: "Buy, sell, and trade tech resources. From devices to digital products, all in one place.",
   },
   {
-    icon: Users,
-    name: "Social Profiles",
-    description: "Connect with like-minded learners worldwide. Build your academic profile, showcase achievements, join study groups, and collaborate on projects with peers who share your ambitions.",
+    icon: MessageSquare,
+    name: "AI Companion",
+    tagline: "Your smart assistant",
+    description: "Get personalized help in your language. AI-powered guidance for learning and building.",
   },
   {
-    icon: Store,
-    name: "Affiliate Store",
-    description: "Discover curated tools, books, and resources recommended by top performers. Earn commissions by sharing products you love with your network through our integrated affiliate program.",
+    icon: BookOpen,
+    name: "Learning Hub",
+    tagline: "Learn at your pace",
+    description: "Free courses in coding, design, data science and more. Structured paths to mastery.",
   },
   {
-    icon: Palette,
-    name: "Custom Themes",
-    description: "Make Pantero truly yours. Choose from a gallery of stunning themes or craft your own — from dark mode elegance to vibrant color palettes that match your personal aesthetic.",
-  },
-  {
-    icon: Quote,
-    name: "Quote Generator",
-    description: "Start every session inspired. Our curated collection delivers motivational and thought-provoking quotes from great minds, keeping you focused and driven throughout your learning journey.",
+    icon: Shield,
+    name: "Web3 Credentials",
+    tagline: "Own your achievements",
+    description: "Blockchain-verified certificates that travel with you. True digital ownership.",
   },
 ];
 
@@ -67,270 +63,296 @@ interface Props {
 }
 
 const PanteroIntroLoader = ({ onComplete }: Props) => {
-  const [phase, setPhase] = useState<Phase>("countdown");
-  const [countdownNum, setCountdownNum] = useState(1);
-  const [webGLFailed, setWebGLFailed] = useState(false);
-  const [revealedCube, setRevealedCube] = useState<number | null>(null);
-  const phaseIndexRef = useRef(0);
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [featureIndex, setFeatureIndex] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Detect WebGL
   useEffect(() => {
-    try {
-      const canvas = document.createElement("canvas");
-      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-      if (!gl) setWebGLFailed(true);
-    } catch {
-      setWebGLFailed(true);
-    }
+    setIsMounted(true);
   }, []);
 
-  // Countdown ticker
-  useEffect(() => {
-    if (phase !== "countdown") return;
-    let n = 1;
-    const iv = setInterval(() => {
-      n++;
-      if (n > 5) { clearInterval(iv); return; }
-      setCountdownNum(n);
-    }, 350);
-    return () => clearInterval(iv);
-  }, [phase]);
-
-  // Phase sequencer
+  // Phase sequencing
   useEffect(() => {
     const advancePhase = () => {
-      phaseIndexRef.current++;
-      if (phaseIndexRef.current >= PHASE_ORDER.length) {
-        onComplete();
+      if (phase === "intro") {
+        setPhase("features");
         return;
       }
-      const next = PHASE_ORDER[phaseIndexRef.current];
-      setPhase(next);
+      if (phase === "features") {
+        if (featureIndex < PLATFORM_FEATURES.length - 1) {
+          setFeatureIndex((prev) => prev + 1);
+        } else {
+          setPhase("brand");
+        }
+        return;
+      }
+      if (phase === "brand") {
+        setPhase("transition");
+        return;
+      }
+      if (phase === "transition") {
+        setPhase("exit");
+        return;
+      }
+      if (phase === "exit") {
+        onComplete();
+      }
     };
-    const duration = PHASE_DURATIONS[phase];
+
+    const duration = phase === "features" 
+      ? PHASE_DURATIONS.features 
+      : PHASE_DURATIONS[phase];
+    
     const timer = setTimeout(advancePhase, duration);
     return () => clearTimeout(timer);
-  }, [phase, onComplete]);
+  }, [phase, featureIndex, onComplete]);
 
-  const activeFeature = revealedCube !== null ? FEATURE_DATA[revealedCube] : null;
+  // Skip handler
+  const handleSkip = useCallback(() => {
+    setPhase("exit");
+    setTimeout(onComplete, 500);
+  }, [onComplete]);
 
-  if (webGLFailed) {
-    return <Fallback2D phase={phase} countdownNum={countdownNum} onSkip={onComplete} />;
+  if (!isMounted) {
+    return null;
   }
 
+  const currentFeature = PLATFORM_FEATURES[featureIndex];
+  const progress = ((featureIndex + 1) / PLATFORM_FEATURES.length) * 100;
+
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] overflow-hidden"
-      style={{ background: "#000" }}
-      animate={phase === "exit" ? { opacity: 0 } : { opacity: 1 }}
-      transition={{ duration: 0.7 }}
-    >
-      {/* Skip button */}
-      <motion.button
-        onClick={onComplete}
-        className="absolute top-6 right-6 z-50 px-5 py-2 text-sm rounded-md border font-body tracking-wider"
-        style={{ color: GOLD, borderColor: GOLD, background: "transparent" }}
-        whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${GOLD}40` }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        Skip
-      </motion.button>
-
-      {/* Countdown overlay */}
-      <AnimatePresence mode="wait">
-        {phase === "countdown" && (
-          <motion.div key="countdown" className="absolute inset-0 z-40 flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={countdownNum}
-                initial={{ opacity: 0, scale: 0.3, filter: "blur(12px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, scale: 1.8, filter: "blur(6px)" }}
-                transition={{ duration: 0.28, ease: "easeOut" }}
-                className="font-display text-8xl md:text-9xl font-bold select-none"
-                style={{
-                  color: GOLD,
-                  textShadow: `0 0 40px ${GOLD}, 0 0 80px ${GOLD}80, 0 0 120px ${GOLD}40`,
-                }}
-              >
-                {countdownNum}
-              </motion.span>
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Feature detail panel — bottom on mobile, left side on desktop */}
-      <AnimatePresence mode="wait">
-        {activeFeature && phase === "emerge" && (
-          <motion.div
-            key={revealedCube}
-            className="absolute z-40 left-0 right-0 bottom-0 flex items-end md:items-center md:right-auto md:top-0 md:bottom-0"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.95) 60%, transparent)" }}
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <div className="px-5 pb-6 pt-10 md:px-12 md:py-8 w-full md:max-w-[42%]"
-              style={{ background: "transparent" }}
-            >
-              {/* Gold accent line */}
-              <motion.div
-                className="w-10 md:w-12 h-0.5 mb-3 md:mb-6"
-                style={{ background: GOLD }}
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ delay: 0.2, duration: 0.4 }}
-              />
-
-              {/* Icon */}
-              <motion.div
-                className="mb-2 md:mb-4"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                <activeFeature.icon className="w-6 h-6 md:w-9 md:h-9" color={GOLD} strokeWidth={1.5} />
-              </motion.div>
-
-              {/* Feature name */}
-              <motion.h2
-                className="text-lg md:text-3xl lg:text-4xl font-display font-bold mb-1.5 md:mb-4 tracking-wide"
-                style={{ color: GOLD, textShadow: `0 0 20px ${GOLD}30` }}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                {activeFeature.name}
-              </motion.h2>
-
-              {/* Description */}
-              <motion.p
-                className="text-xs md:text-base leading-relaxed line-clamp-3 md:line-clamp-none"
-                style={{ color: "rgba(255,255,255,0.7)" }}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 }}
-              >
-                {activeFeature.description}
-              </motion.p>
-
-              {/* Cube counter */}
-              <motion.div
-                className="mt-4 md:mt-8 flex gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.45 }}
-              >
-                {FEATURE_DATA.map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-300"
-                    style={{
-                      background: i <= (revealedCube ?? -1) ? GOLD : "rgba(255,255,255,0.15)",
-                      boxShadow: i === revealedCube ? `0 0 8px ${GOLD}` : "none",
-                    }}
-                  />
-                ))}
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Brand name during brand phase */}
-      <AnimatePresence>
-        {phase === "brand" && (
-          <motion.div
-            className="absolute bottom-16 left-0 right-0 z-40 flex justify-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <span
-              className="font-display text-lg tracking-[0.4em] uppercase"
-              style={{ color: GOLD, textShadow: `0 0 20px ${GOLD}60` }}
-            >
-              Pantero
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 3D Canvas */}
-      <Suspense
-        fallback={
-          <div className="w-full h-full flex items-center justify-center">
-            <div
-              className="w-8 h-8 rounded-full border-2 animate-spin"
-              style={{ borderColor: `${GOLD} transparent` }}
-            />
-          </div>
-        }
-      >
-        {phase !== "countdown" && (
-          <IntroCanvas phase={phase} onRevealedCube={setRevealedCube} />
-        )}
-      </Suspense>
-    </motion.div>
-  );
-};
-
-/* 2D Fallback */
-const Fallback2D = ({
-  phase, countdownNum, onSkip,
-}: { phase: Phase; countdownNum: number; onSkip: () => void }) => {
-  const LETTERS = ["P", "A", "N", "T", "E", "R", "O"];
-  return (
-    <motion.div
-      className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-      style={{ background: "#000" }}
-      animate={phase === "exit" ? { opacity: 0 } : {}}
+      className="fixed inset-0 z-[9999] flex flex-col"
+      style={{ background: "linear-gradient(180deg, #0a0a0f 0%, #0d0d12 50%, #0a0a0f 100%)" }}
+      initial={{ opacity: 1 }}
+      animate={{ opacity: phase === "exit" ? 0 : 1 }}
       transition={{ duration: 0.6 }}
     >
-      <button
-        onClick={onSkip}
-        className="absolute top-6 right-6 z-10 px-4 py-1.5 text-sm rounded-md border"
-        style={{ color: GOLD, borderColor: GOLD, background: "transparent" }}
+      {/* Skip Button */}
+      <motion.button
+        onClick={handleSkip}
+        className="absolute top-6 right-6 z-50 px-5 py-2 text-sm rounded-full border transition-all"
+        style={{ 
+          color: GOLD, 
+          borderColor: `${GOLD}40`, 
+          background: "rgba(0,0,0,0.5)",
+          backdropFilter: "blur(10px)"
+        }}
+        whileHover={{ scale: 1.05, borderColor: GOLD }}
+        whileTap={{ scale: 0.95 }}
       >
-        Skip
-      </button>
-      <AnimatePresence mode="wait">
-        {phase === "countdown" && (
-          <motion.span
-            key={countdownNum}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.4 }}
-            transition={{ duration: 0.25 }}
-            className="font-display text-8xl font-bold"
-            style={{ color: GOLD, textShadow: `0 0 40px ${GOLD}` }}
-          >
-            {countdownNum}
-          </motion.span>
-        )}
-      </AnimatePresence>
-      {(phase === "brand" || phase === "features") && (
-        <div className="flex gap-3">
-          {LETTERS.map((letter, i) => (
+        Skip →
+      </motion.button>
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <AnimatePresence mode="wait">
+          {/* Intro Phase */}
+          {phase === "intro" && (
             <motion.div
-              key={i}
-              className="flex items-center justify-center rounded-lg font-display text-xl font-bold"
-              style={{ width: 52, height: 52, backgroundColor: GOLD, color: "#000", boxShadow: `0 0 24px ${GOLD}` }}
-              initial={{ opacity: 0, y: -60, scale: 0.4 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
+              key="intro"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              transition={{ duration: 0.5 }}
+              className="text-center"
             >
-              {letter}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mb-6"
+              >
+                <Sparkles 
+                  className="w-16 h-16 mx-auto" 
+                  style={{ color: GOLD, filter: `drop-shadow(0 0 20px ${GOLD})` }} 
+                />
+              </motion.div>
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="font-display text-5xl md:text-7xl font-bold"
+                style={{ 
+                  color: GOLD,
+                  textShadow: `0 0 40px ${GOLD}60, 0 0 80px ${GOLD}30`
+                }}
+              >
+                PANTERO
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="mt-4 text-lg text-gray-400"
+              >
+                Africa&apos;s Offline Community & Marketplace
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2 }}
+                className="mt-8"
+              >
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  Loading experience...
+                </div>
+              </motion.div>
             </motion.div>
-          ))}
-        </div>
-      )}
+          )}
+
+          {/* Features Phase */}
+          {phase === "features" && (
+            <motion.div
+              key={`feature-${featureIndex}`}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.4 }}
+              className="max-w-2xl w-full"
+            >
+              {/* Progress Bar */}
+              <div className="mb-8">
+                <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: GOLD }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500 text-center">
+                  {featureIndex + 1} of {PLATFORM_FEATURES.length}
+                </p>
+              </div>
+
+              {/* Feature Card */}
+              <div className="rounded-2xl border p-8 md:p-12"
+                style={{ 
+                  background: "rgba(20,20,25,0.8)",
+                  borderColor: `${GOLD}30`,
+                  backdropFilter: "blur(20px)"
+                }}
+              >
+                {/* Icon */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
+                  style={{ 
+                    background: `${GOLD}15`,
+                    border: `1px solid ${GOLD}30`
+                  }}
+                >
+                  <currentFeature.icon 
+                    className="w-8 h-8" 
+                    style={{ color: GOLD }} 
+                  />
+                </motion.div>
+
+                {/* Name & Tagline */}
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="font-display text-3xl md:text-4xl font-bold mb-2"
+                  style={{ color: GOLD }}
+                >
+                  {currentFeature.name}
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-sm font-medium mb-4"
+                  style={{ color: "rgba(255,255,255,0.5)" }}
+                >
+                  {currentFeature.tagline}
+                </motion.p>
+
+                {/* Description */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-gray-400 leading-relaxed"
+                >
+                  {currentFeature.description}
+                </motion.p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Brand Phase */}
+          {phase === "brand" && (
+            <motion.div
+              key="brand"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center"
+            >
+              <motion.h1
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                className="font-display text-6xl md:text-8xl font-bold"
+                style={{ 
+                  color: GOLD,
+                  textShadow: `0 0 60px ${GOLD}80, 0 0 120px ${GOLD}40`
+                }}
+              >
+                PANTERO
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="mt-6 text-xl text-gray-300"
+              >
+                Africa&apos;s Future Tech Platform
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+                className="mt-8 flex items-center justify-center gap-3"
+              >
+                <Zap className="w-5 h-5" style={{ color: GOLD }} />
+                <span className="text-sm text-gray-400">Launching November 2026</span>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Transition Phase */}
+          {phase === "transition" && (
+            <motion.div
+              key="transition"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center"
+            >
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <ArrowRight className="w-6 h-6" style={{ color: GOLD }} />
+                <span className="text-lg text-gray-300">Entering Platform...</span>
+              </div>
+              <p className="text-sm text-gray-500">Thank you for waiting</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Footer */}
+      <div className="p-6 text-center">
+        <p className="text-xs text-gray-600">
+          © 2026 Pantero • Built for African Youth
+        </p>
+      </div>
     </motion.div>
   );
 };
