@@ -172,13 +172,13 @@ export default function RootLayout({
         <meta name="author" content="Pantero Team" />
         <meta name="publisher" content="Pantero" />
         
-        {/* Favicon - Multiple formats for better compatibility */}
-        <link rel="icon" type="image/svg+xml" href="https://pantero.vercel.app/favicon.svg" />
+        {/* Favicon - Primary JPG (brand image), SVG fallback */}
         <link rel="icon" type="image/jpeg" href="https://pantero.vercel.app/favicon.jpg" />
+        <link rel="icon" type="image/svg+xml" href="https://pantero.vercel.app/favicon.svg" />
         <link rel="icon" type="image/png" sizes="32x32" href="https://pantero.vercel.app/favicon.jpg" />
         <link rel="icon" type="image/png" sizes="16x16" href="https://pantero.vercel.app/favicon.jpg" />
         <link rel="apple-touch-icon" href="https://pantero.vercel.app/favicon.jpg" />
-        <link rel="shortcut icon" href="https://pantero.vercel.app/favicon.svg" />
+        <link rel="shortcut icon" href="https://pantero.vercel.app/favicon.jpg" />
         
         {/* Theme & Mobile */}
         <meta name="theme-color" content="#0a0e17" />
