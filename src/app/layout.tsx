@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { favicon } from "lucide-react";
 
 const interVariable = "font-inter";
 const spaceGroteskVariable = "font-space-grotesk";
@@ -13,10 +12,11 @@ export const metadata: Metadata = {
     template: "%s | Pantero",
   },
   description:
-    "Pantero - Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn coding, and access AI mentorship without internet. Built by a FUTO undergraduate.",
+    "Pantero - Africa's first offline community workspace, marketplace & AI platform for African youth. Learn coding, get AI mentorship, trade, and build your tech career - even without internet. Built by a FUTO undergraduate.",
   keywords: [
     "Pantero",
     "offline platform Africa",
+    "African tech platform",
     "community workspace Africa",
     "marketplace Africa",
     "African youth tech",
@@ -31,17 +31,16 @@ export const metadata: Metadata = {
     "youth tech platform",
     "African marketplace",
     "offline learning Africa",
+    "FUTO",
+    "Nigeria tech",
+    "African startup",
   ],
   generator: "Pantero",
   applicationName: "Pantero",
   referrer: "strict-origin-when-cross-origin",
-  authors: [{ name: "Pantero Team" }],
+  authors: [{ name: "Pantero Team", url: "https://pantero.vercel.app" }],
   creator: "Pantero",
   publisher: "Pantero",
-  icons: {
-    icon: "/favicon.jpg",
-    apple: "/favicon.jpg",
-  },
   robots: {
     index: true,
     follow: true,
@@ -67,10 +66,10 @@ export const metadata: Metadata = {
     siteName: "Pantero",
     title: "Pantero | Offline Community, Marketplace & AI for African Youth",
     description:
-      "Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn, and access AI without internet.",
+      "Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn coding, and access AI mentorship - even without internet.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "https://pantero.vercel.app/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Pantero - Offline Community, Marketplace & AI for African Youth",
@@ -82,13 +81,22 @@ export const metadata: Metadata = {
     title: "Pantero | Offline Community, Marketplace & AI for African Youth",
     description:
       "Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn without internet.",
-    images: ["/og-image.jpg"],
+    images: ["https://pantero.vercel.app/og-image.jpg"],
     creator: "@pantero",
+    site: "@pantero",
   },
+  verification: {
+    google: "google2b791bc8e1e3a5c3",
+  },
+  category: "technology",
+  classification: "Web Application",
   other: {
-    "geo.region": "AF",
-    "geo.placename": "Africa",
+    "geo.region": "NG",
+    "geo.placename": "Nigeria",
     "ICBM": "0, 0",
+    "application-name": "Pantero",
+    "msapplication-TileColor": "#0a0e17",
+    "theme-color": "#0a0e17",
   },
 };
 
@@ -109,9 +117,10 @@ export default function RootLayout({
     name: "Pantero",
     url: "https://pantero.vercel.app",
     logo: "https://pantero.vercel.app/og-image.jpg",
-    description: "The all-in-one ecosystem for African youth to explore, pursue, and succeed in tech careers. AI mentorship, courses, community, marketplace — powered by Web3.",
+    description: "Africa's first offline community workspace, marketplace & AI platform for African youth. Learn coding, get AI mentorship, trade, and build your tech career - even without internet.",
     sameAs: [
       "https://twitter.com/pantero",
+      "https://tiktok.com/@panteroprelaunch",
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -122,7 +131,16 @@ export default function RootLayout({
       "@type": "Place",
       name: "Africa",
     },
-    serviceType: ["AI Mentorship", "Tech Education", "Social Network", "Marketplace", "Web3 Credentials"],
+    serviceType: ["AI Companion", "Community Workspace", "Marketplace", "Learning Hub", "Web3 Credentials"],
+    foundingLocation: {
+      "@type": "Place",
+      name: "Nigeria",
+    },
+    numberOfEmployees: {
+      "@type": "QuantitativeValue",
+      minValue: 1,
+      maxValue: 10,
+    },
   };
 
   const webappJsonLd = {
@@ -130,9 +148,9 @@ export default function RootLayout({
     "@type": "WebApplication",
     name: "Pantero",
     url: "https://pantero.vercel.app",
-    description: "All-in-one tech ecosystem for African youth: AI mentorship, courses, community, marketplace with Web3 credentials",
+    description: "Africa's first offline community workspace, marketplace & AI platform. Connect, trade, learn, and access AI - even without internet.",
     applicationCategory: "EducationApplication",
-    operatingSystem: "Web",
+    operatingSystem: "Web, Android, iOS",
     offers: {
       "@type": "Offer",
       price: "0",
@@ -143,24 +161,52 @@ export default function RootLayout({
       name: "Pantero",
       url: "https://pantero.vercel.app",
     },
+    browserRequirements: "Requires JavaScript",
+    permissions: "internet",
   };
 
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <meta name="framework" content="" />
-        <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.jpg" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.jpg" />
-        <link rel="apple-touch-icon" href="/favicon.jpg" />
+        <meta name="framework" content="Next.js" />
+        <meta name="author" content="Pantero Team" />
+        <meta name="publisher" content="Pantero" />
+        
+        {/* Favicon - Multiple formats for better compatibility */}
+        <link rel="icon" type="image/jpeg" href="https://pantero.vercel.app/favicon.jpg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="https://pantero.vercel.app/favicon.jpg" />
+        <link rel="icon" type="image/png" sizes="16x16" href="https://pantero.vercel.app/favicon.jpg" />
+        <link rel="apple-touch-icon" href="https://pantero.vercel.app/favicon.jpg" />
+        <link rel="shortcut icon" href="https://pantero.vercel.app/favicon.jpg" />
+        
+        {/* Theme & Mobile */}
         <meta name="theme-color" content="#0a0e17" />
         <meta name="apple-mobile-web-app-title" content="Pantero" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-TileColor" content="#0a0e17" />
+        <meta name="msapplication-TileImage" content="https://pantero.vercel.app/favicon.jpg" />
+        
+        {/* Preconnect to external resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <link rel="alternate" type="application/rss+xml" title="Pantero Blog" href="/rss.xml" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        {/* RSS & Sitemap */}
+        <link rel="alternate" type="application/rss+xml" title="Pantero Blog" href="https://pantero.vercel.app/rss.xml" />
+        <link rel="sitemap" type="application/xml" title="Sitemap" href="https://pantero.vercel.app/sitemap.xml" />
+        
+        {/* SEO Meta Tags */}
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow" />
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="7 days" />
+        <meta name="coverage" content="Worldwide" />
+        <meta name="target" content="all" />
+        <meta name="HandheldFriendly" content="True" />
+        
+        {/* Structured Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}

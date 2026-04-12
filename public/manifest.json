@@ -1,7 +1,7 @@
 {
-  "name": "Pantero | Offline AI for African Youth",
+  "name": "Pantero | Offline Community, Marketplace & AI for African Youth",
   "short_name": "Pantero",
-  "description": "Offline AI for African Youth. Learn coding, get AI mentorship, and build tech skills without internet.",
+  "description": "Africa's first offline community workspace, marketplace & AI platform for African youth. Learn coding, get AI mentorship, trade - even without internet.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -10,36 +10,31 @@
   "background_color": "#0a0e17",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["education", "productivity"],
+  "categories": ["education", "productivity", "technology", "social networking"],
   "screenshots": [
     {
-      "src": "/og-image.jpg",
+      "src": "https://pantero.vercel.app/og-image.jpg",
       "sizes": "1200x630",
       "type": "image/jpeg",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/favicon.jpg",
-      "sizes": "192x192",
-      "type": "image/jpeg",
-      "form_factor": "narrow"
+      "form_factor": "wide",
+      "label": "Pantero Landing Page"
     }
   ],
   "icons": [
     {
-      "src": "/favicon.jpg",
+      "src": "https://pantero.vercel.app/favicon.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/favicon.jpg",
+      "src": "https://pantero.vercel.app/favicon.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/favicon.jpg",
+      "src": "https://pantero.vercel.app/favicon.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "maskable"
@@ -53,7 +48,33 @@
       "url": "/join",
       "icons": [
         {
-          "src": "/favicon.jpg",
+          "src": "https://pantero.vercel.app/favicon.jpg",
+          "sizes": "192x192",
+          "type": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "name": "View Features",
+      "short_name": "Features",
+      "description": "Explore Pantero features",
+      "url": "/features",
+      "icons": [
+        {
+          "src": "https://pantero.vercel.app/favicon.jpg",
+          "sizes": "192x192",
+          "type": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "name": "Check Status",
+      "short_name": "Status",
+      "description": "View live waitlist status",
+      "url": "/status",
+      "icons": [
+        {
+          "src": "https://pantero.vercel.app/favicon.jpg",
           "sizes": "192x192",
           "type": "image/jpeg"
         }
@@ -61,5 +82,7 @@
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "handline": "Offline Community, Marketplace & AI for African Youth",
+  "description": "Africa's first offline platform for tech careers"
 }
